@@ -14,6 +14,28 @@ import "./styles.css";
 import { AuthModal } from "./components/AuthModal";
 import { supabase } from "./lib/supabase";
 
+type NearbyKind = "hotel" | "restaurant" | "pilgrimage" | "attraction";
+
+type NearbyPlace = {
+  id: string | null;
+  name: string;
+  address: string;
+  rating: number | null;
+  ratingCount: number | null;
+  primaryType: string;
+  openNow: boolean | null;
+  mapsUri: string | null;
+  location: {
+    lat: number;
+    lng: number;
+  } | null;
+};
+
+// Nearby searches are deliberately cached only for this browser session.
+// We do not persist these search results to the trip database.
+const nearbySuggestionCache =
+  new Map<string, NearbyPlace[]>();
+
 type PlaceSuggestion = {
   placeId: string;
   place: string;
@@ -30,6 +52,7 @@ const placeSuggestionCache = new Map<string, PlaceSuggestion[]>();
 
 type Mode = "car" | "train" | "flight" | "mixed";
 type Style = "fastest" | "comfortable" | "family" | "senior" | "budget";
+type Purpose = "leisure" | "pilgrimage" | "business" | "family_visit" | "mixed";
 
 type TripState = {
   origin: string;
@@ -43,6 +66,7 @@ type TripState = {
   children0to5: number;
   children6to12: number;
   seniors: number;
+  purpose: Purpose;
   style: Style;
   facilities: {
     stay: boolean;
@@ -69,6 +93,13 @@ type SavedTrip = {
   created_at: string;
 };
 
+// Temporary auth-resume state.
+// sessionStorage is used so unfinished trip data survives OAuth redirect
+// without creating a database record or permanent browser storage.
+const PENDING_TRIP_KEY = "mtp.pendingTrip";
+const PENDING_STEP_KEY = "mtp.pendingStep";
+const PENDING_GENERATE_KEY = "mtp.pendingGenerate";
+
 const initialTrip: TripState = {
   origin: "",
   destinations: [""],
@@ -81,12 +112,13 @@ const initialTrip: TripState = {
   children0to5: 0,
   children6to12: 0,
   seniors: 0,
+  purpose: "leisure",
   style: "comfortable",
   facilities: {
-    stay: true,
-    meals: true,
-    restStops: true,
-    visitBuffer: true,
+    stay: false,
+    meals: false,
+    restStops: false,
+    visitBuffer: false,
     cost: true,
   },
 };
@@ -109,6 +141,32 @@ function App() {
   const [userId, setUserId] = React.useState<string | null>(null);
   const [saveState, setSaveState] = React.useState("");
 
+  // Restore an unfinished trip after an OAuth redirect.
+  React.useEffect(()=>{
+    try {
+      const savedTrip=sessionStorage.getItem(PENDING_TRIP_KEY);
+      const savedStep=sessionStorage.getItem(PENDING_STEP_KEY);
+
+      if(savedTrip){
+        setTrip(JSON.parse(savedTrip) as TripState);
+      }
+
+      if(savedStep){
+        const parsed=Number(savedStep);
+        if(parsed>=1 && parsed<=4){
+          setStep(parsed as Step);
+        }
+      }
+    } catch (error) {
+      console.warn("Could not restore pending trip",error);
+      sessionStorage.removeItem(PENDING_TRIP_KEY);
+      sessionStorage.removeItem(PENDING_STEP_KEY);
+      sessionStorage.removeItem(PENDING_GENERATE_KEY);
+    }
+  },[]);
+
+  const pendingGenerateHandled = React.useRef(false);
+
   React.useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setUserEmail(data.session?.user.email ?? null);
@@ -122,6 +180,25 @@ function App() {
 
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  // Resume the user's original Generate action after successful login.
+  // The handled ref ensures auth callbacks cannot trigger generation twice.
+  React.useEffect(()=>{
+    if(!userId || pendingGenerateHandled.current) return;
+    if(sessionStorage.getItem(PENDING_GENERATE_KEY)!=="1") return;
+
+    pendingGenerateHandled.current=true;
+
+    const timer=window.setTimeout(()=>{
+      sessionStorage.removeItem(PENDING_TRIP_KEY);
+      sessionStorage.removeItem(PENDING_STEP_KEY);
+      sessionStorage.removeItem(PENDING_GENERATE_KEY);
+
+      generate();
+    },0);
+
+    return ()=>window.clearTimeout(timer);
+  },[userId]);
 
   const updateTrip = <K extends keyof TripState>(key: K, value: TripState[K]) => {
     setTrip((t) => ({ ...t, [key]: value }));
@@ -231,6 +308,16 @@ function App() {
     // Generation can consume paid route/AI services.
     // Require an authenticated user before creating any plan or server call.
     if (!userId) {
+      // Preserve the complete in-progress trip before authentication.
+      // This prevents OAuth redirect from clearing the user's selections.
+      try {
+        sessionStorage.setItem(PENDING_TRIP_KEY,JSON.stringify(trip));
+        sessionStorage.setItem(PENDING_STEP_KEY,String(step));
+        sessionStorage.setItem(PENDING_GENERATE_KEY,"1");
+      } catch (error) {
+        console.warn("Could not preserve pending trip",error);
+      }
+
       setAuthOpen(true);
       return;
     }
@@ -261,6 +348,7 @@ function App() {
             children6to12: trip.children6to12,
             seniors: trip.seniors,
           },
+          tripPurpose: trip.purpose,
           comfortMode: trip.style,
           facilities: trip.facilities,
         },
@@ -338,12 +426,13 @@ function App() {
       children0to5: saved.traveller_config?.children0to5 ?? 0,
       children6to12: saved.traveller_config?.children6to12 ?? saved.traveller_config?.children ?? 0,
       seniors: saved.traveller_config?.seniors ?? 0,
+      purpose: saved.trip_input?.purpose || "leisure",
       style: saved.trip_input?.style || saved.comfort_mode || "comfortable",
       facilities: saved.trip_input?.facilities || {
-        stay: true,
-        meals: true,
-        restStops: true,
-        visitBuffer: true,
+        stay: false,
+        meals: false,
+        restStops: false,
+        visitBuffer: false,
         cost: true
       },
     });
@@ -409,11 +498,11 @@ function App() {
               <div className="step-heading">
                 <span className="step-bubble">{step}</span>
                 <div>
-                  <h2>{["Plan your route","Who is travelling?","Choose comfort","Review your trip"][step-1]}</h2>
+                  <h2>{["Plan your route","Who is travelling?","Trip purpose & style","Review your trip"][step-1]}</h2>
                   <p>{[
                     "Add your route, dates and travel mode.",
                     "No names needed. Just tell us the group.",
-                    "Choose how fast or relaxed the journey should feel.",
+                    "Tell us why you are travelling and how you want the journey planned.",
                     "Check the basics, then build the itinerary."
                   ][step-1]}</p>
                 </div>
@@ -450,7 +539,7 @@ function App() {
 }
 
 function StepBar({step}:{step:Step}) {
-  const items = [["Route",Route],["Travellers",UsersRound],["Comfort",HeartHandshake],["Review",Sparkles]] as const;
+  const items = [["Route",Route],["Travellers",UsersRound],["Trip Style",HeartHandshake],["Review",Sparkles]] as const;
   return (
     <div className="step-bar">
       {items.map(([label,Icon],i)=>{
@@ -467,6 +556,13 @@ function StepBar({step}:{step:Step}) {
 }
 
 function RouteStep({trip,updateTrip,onNext}:{trip:TripState;updateTrip:any;onNext:()=>void}) {
+
+  // Local calendar date used to block dates before today.
+  const today = React.useMemo(()=>{
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0,10);
+  },[]);
   const setDestination = (index:number,value:string)=>{
     const next=[...trip.destinations];
     next[index]=value;
@@ -479,7 +575,13 @@ function RouteStep({trip,updateTrip,onNext}:{trip:TripState;updateTrip:any;onNex
     updateTrip("destinations",trip.destinations.filter((_,i)=>i!==index));
   };
 
-  const valid = trip.origin.trim() && trip.destinations.some(x=>x.trim()) && trip.startDate;
+  // Route-step validation is explicit so the UI can explain
+  // why Continue is disabled.
+  const hasOrigin = Boolean(trip.origin?.trim());
+  const hasDestination = trip.destinations.some(x=>Boolean(x?.trim()));
+  const hasValidStartDate = Boolean(trip.startDate && trip.startDate >= today);
+
+  const valid = hasOrigin && hasDestination && hasValidStartDate;
 
   return (
     <div className="step-content">
@@ -521,19 +623,27 @@ function RouteStep({trip,updateTrip,onNext}:{trip:TripState;updateTrip:any;onNex
       <div className="group-label">When are you travelling?</div>
       <div className="date-grid">
         <FieldBox color="rose" icon={<CalendarDays size={19}/>} label="START DATE">
-          <input type="date" value={trip.startDate} onChange={e=>updateTrip("startDate",e.target.value)}/>
+          <input type="date" min={today} value={trip.startDate} onChange={e=>updateTrip("startDate",e.target.value)}/>
         </FieldBox>
         <FieldBox color="amber" icon={<Clock3 size={19}/>} label="START TIME">
           <input type="time" value={trip.startTime} onChange={e=>updateTrip("startTime",e.target.value)}/>
         </FieldBox>
         <FieldBox color="purple" icon={<CalendarDays size={19}/>} label="END DATE (OPTIONAL)">
-          <input type="date" min={trip.startDate} value={trip.endDate} onChange={e=>updateTrip("endDate",e.target.value)}/>
+          <input type="date" min={trip.startDate || today} value={trip.endDate} onChange={e=>updateTrip("endDate",e.target.value)}/>
         </FieldBox>
         <div className="date-help">
           <span className="date-help-icon"><Sparkles size={18}/></span>
           <span>Leave End Date empty and the planner will decide a practical trip duration.</span>
         </div>
       </div>
+
+      {!valid && (
+        <div className="route-validation-hint">
+          {!hasOrigin && <span>Choose a starting place.</span>}
+          {!hasDestination && <span>Choose where you are going.</span>}
+          {!hasValidStartDate && <span>Select today or a future start date.</span>}
+        </div>
+      )}
 
       <Footer nextText="Continue to Travellers" onNext={onNext} disabled={!valid}/>
     </div>
@@ -571,8 +681,68 @@ function ComfortStep({trip,updateTrip,onBack,onNext}:{trip:TripState;updateTrip:
     {key:"budget" as Style,title:"Budget",note:"Spend less where practical",icon:<WalletCards size={20}/>,color:"rose"},
   ];
 
+  const purposes=[
+    {
+      key:"leisure" as Purpose,
+      title:"Leisure",
+      note:"Holiday, relaxation or sightseeing",
+      icon:<MapPinned size={20}/>
+    },
+    {
+      key:"pilgrimage" as Purpose,
+      title:"Pilgrimage",
+      note:"Darshan, temple or religious visit",
+      icon:<Sparkles size={20}/>
+    },
+    {
+      key:"business" as Purpose,
+      title:"Business",
+      note:"Meetings, work or official travel",
+      icon:<WalletCards size={20}/>
+    },
+    {
+      key:"family_visit" as Purpose,
+      title:"Family / Personal",
+      note:"Visit family, friends or personal work",
+      icon:<UsersRound size={20}/>
+    },
+    {
+      key:"mixed" as Purpose,
+      title:"Mixed",
+      note:"More than one purpose",
+      icon:<Route size={20}/>
+    }
+  ];
+
   return (
     <div className="step-content">
+
+      <div className="group-label purpose-label">What is the purpose of this trip?</div>
+
+      <div className="purpose-grid">
+        {purposes.map(p=>(
+          <button
+            key={p.key}
+            type="button"
+            className={`purpose-option ${trip.purpose===p.key?"active":""}`}
+            onClick={()=>updateTrip("purpose",p.key)}
+          >
+            <span className="purpose-icon">{p.icon}</span>
+
+            <span className="purpose-copy">
+              <strong>{p.title}</strong>
+              <small>{p.note}</small>
+            </span>
+
+            <span className="select-mark">
+              {trip.purpose===p.key ? <Check size={14}/> : null}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="group-label">How should we plan the journey?</div>
+
       <div className="comfort-grid">
         {options.map(o=>(
           <button key={o.key} className={`comfort-option ${trip.style===o.key?"active":""}`} onClick={()=>updateTrip("style",o.key)}>
@@ -627,6 +797,17 @@ function ReviewStep({trip,onBack,onGenerate,generating}:{trip:TripState;onBack:(
         <ReviewCard color="blue" icon={<Route size={20}/>} label="ROUTE" value={`${trip.origin} â†’ ${trip.destinations.join(" â†’ ")}`}/>
         <ReviewCard color="green" icon={<Car size={20}/>} label="TRAVEL" value={titleCase(trip.mode)}/>
         <ReviewCard color="orange" icon={<UsersRound size={20}/>} label="TRAVELLERS" value={`${trip.adults+trip.children0to5+trip.children6to12+trip.seniors} people · ${trip.adults+trip.children6to12+trip.seniors} seats`}/>
+        <ReviewCard
+          color="green"
+          icon={<MapPinned size={20}/>}
+          label="PURPOSE"
+          value={
+            trip.purpose==="family_visit"
+              ? "Family / Personal"
+              : titleCase(trip.purpose)
+          }
+        />
+
         <ReviewCard color="purple" icon={<HeartHandshake size={20}/>} label="STYLE" value={trip.style==="senior"?"Senior friendly":titleCase(trip.style)}/>
         <ReviewCard color="rose" icon={<CalendarDays size={20}/>} label="START" value={trip.startDate || "Not set"}/>
         <ReviewCard color="amber" icon={<CalendarDays size={20}/>} label="END" value={trip.endDate || "Planner decides"}/>
@@ -681,6 +862,187 @@ function Result({trip,plan,routeData,rules,costEstimate,source,warning,generatin
   const seats=trip.adults+trip.children6to12+trip.seniors;
   const summaryNotes=Array.isArray(plan?.summary?.notes)?plan.summary.notes:[];
 
+  const finalDestination =
+    trip.destinations.filter(Boolean).at(-1) || "Destination";
+
+  const purposeLabel =
+    trip.purpose === "family_visit"
+      ? "Family / Personal"
+      : titleCase(trip.purpose || "leisure");
+
+  const styleLabel =
+    trip.style === "senior"
+      ? "Senior friendly"
+      : titleCase(trip.style);
+
+  // For road journeys, add practical break time on top of Google driving time.
+  // Train/flight schedules must come from their respective live providers.
+  const breakEveryMinutes =
+    Number(rules?.breakEveryMinutes) || 150;
+
+  const breakDurationMinutes =
+    Number(rules?.breakDurationMinutes) || 20;
+
+  const estimatedRoadBreaks =
+    trip.mode === "car" && totalTravelMin > breakEveryMinutes
+      ? Math.floor(totalTravelMin / breakEveryMinutes)
+      : 0;
+
+  const practicalTravelMin =
+    trip.mode === "car" && totalTravelMin
+      ? totalTravelMin + (estimatedRoadBreaks * breakDurationMinutes)
+      : totalTravelMin;
+
+  const selectedExtras = [
+    trip.facilities?.stay ? "Stay" : null,
+    trip.facilities?.meals ? "Meals" : null,
+    trip.facilities?.restStops ? "Rest stops" : null,
+    trip.facilities?.visitBuffer ? "Ready / visit buffer" : null
+  ].filter(Boolean) as string[];
+
+  const purposeArrivalText = (() => {
+    switch (trip.purpose) {
+      case "pilgrimage":
+        return "Reach destination and prepare for darshan / religious visit";
+      case "business":
+        return "Reach destination with buffer for check-in / meeting";
+      case "family_visit":
+        return "Reach destination and continue to family / personal visit";
+      case "mixed":
+        return "Reach destination and continue with the planned activities";
+      default:
+        return "Reach destination and begin the leisure plan";
+    }
+  })();
+
+  // Overview deliberately gives a simple start-to-end picture.
+  // Exact train/flight timings are never invented here.
+  const journeyFlow = (() => {
+    if (trip.mode === "car") {
+      const flow = [
+        {
+          icon: <MapPin size={18}/>,
+          title: `Start from ${trip.origin}`,
+          detail: trip.startTime
+            ? `${trip.startDate || ""} at ${trip.startTime}`
+            : trip.startDate || "Departure time to be decided"
+        },
+        {
+          icon: <Car size={18}/>,
+          title: "Drive toward destination",
+          detail: totalTravelMin
+            ? `${formatMinutes(totalTravelMin)} Google road-driving time`
+            : "Road time is being calculated"
+        }
+      ];
+
+      if (estimatedRoadBreaks > 0) {
+        flow.push({
+          icon: <Coffee size={18}/>,
+          title: `${estimatedRoadBreaks} practical break${estimatedRoadBreaks === 1 ? "" : "s"} recommended`,
+          detail: `About every ${formatMinutes(breakEveryMinutes)} · roughly ${breakDurationMinutes} min each`
+        });
+      }
+
+      flow.push(
+        {
+          icon: <MapPinned size={18}/>,
+          title: `Arrive in ${finalDestination}`,
+          detail: practicalTravelMin
+            ? `Allow roughly ${formatMinutes(practicalTravelMin)} including planned road breaks`
+            : "Arrival depends on final road conditions"
+        },
+        {
+          icon: <Sparkles size={18}/>,
+          title: purposeArrivalText,
+          detail: `${purposeLabel} trip · ${styleLabel} planning`
+        }
+      );
+
+      return flow;
+    }
+
+    if (trip.mode === "train") {
+      return [
+        {
+          icon: <MapPin size={18}/>,
+          title: `Start from ${trip.origin}`,
+          detail: "Leave enough time to reach the boarding station"
+        },
+        {
+          icon: <Train size={18}/>,
+          title: "Board the suitable train",
+          detail: "Exact train, departure time and rail duration require live railway data"
+        },
+        {
+          icon: <MapPinned size={18}/>,
+          title: `Arrive near ${finalDestination}`,
+          detail: "Continue from the arrival station to the final destination"
+        },
+        {
+          icon: <Sparkles size={18}/>,
+          title: purposeArrivalText,
+          detail: `${purposeLabel} trip · ${styleLabel} planning`
+        }
+      ];
+    }
+
+    if (trip.mode === "flight") {
+      return [
+        {
+          icon: <MapPin size={18}/>,
+          title: `Start from ${trip.origin}`,
+          detail: "Travel to the departure airport with check-in buffer"
+        },
+        {
+          icon: <Plane size={18}/>,
+          title: "Take the suitable flight",
+          detail: "Exact flight, fare and schedule require live airline data"
+        },
+        {
+          icon: <MapPinned size={18}/>,
+          title: `Transfer to ${finalDestination}`,
+          detail: "Allow airport exit, baggage and last-mile transfer time"
+        },
+        {
+          icon: <Sparkles size={18}/>,
+          title: purposeArrivalText,
+          detail: `${purposeLabel} trip · ${styleLabel} planning`
+        }
+      ];
+    }
+
+    return [
+      {
+        icon: <MapPin size={18}/>,
+        title: `Start from ${trip.origin}`,
+        detail: trip.startTime
+          ? `${trip.startDate || ""} at ${trip.startTime}`
+          : trip.startDate || "Departure time to be decided"
+      },
+      {
+        icon: <Car size={18}/>,
+        title: "First-mile transfer",
+        detail: "Use road transport to reach the appropriate station / airport / interchange"
+      },
+      {
+        icon: <Route size={18}/>,
+        title: "Main journey segment",
+        detail: "The detailed plan will decide where Train / Flight / Car makes the most practical sense"
+      },
+      {
+        icon: <Car size={18}/>,
+        title: "Last-mile transfer",
+        detail: `Continue from the main arrival point to ${finalDestination}`
+      },
+      {
+        icon: <Sparkles size={18}/>,
+        title: purposeArrivalText,
+        detail: `${purposeLabel} trip · ${styleLabel} planning`
+      }
+    ];
+  })();
+
   const textPlan=buildShareText(trip,plan,routeData);
 
   const copy=async()=>{
@@ -696,8 +1058,26 @@ function Result({trip,plan,routeData,rules,costEstimate,source,warning,generatin
       <div className="result-top">
         <div>
           <span className="eyebrow">YOUR TRAVEL PLAN</span>
-          <h1>{plan?.title || `${trip.origin} â†’ ${trip.destinations.join(" â†’ ")}`}</h1>
-          <p>{trip.style==="senior"?"Senior friendly":titleCase(trip.style)} Â· {trip.adults+trip.children0to5+trip.children6to12+trip.seniors} travellers Â· {titleCase(trip.mode)}</p>
+          <div className="result-route-title">
+            <div>
+              <small>FROM</small>
+              <strong>{trip.origin}</strong>
+            </div>
+
+            <ArrowRight className="result-route-arrow" size={24}/>
+
+            <div>
+              <small>TO</small>
+              <strong>{finalDestination}</strong>
+            </div>
+          </div>
+
+          <p className="result-meta">
+            <span>{purposeLabel}</span>
+            <span>{styleLabel}</span>
+            <span>{totalPeople} travellers</span>
+            <span>{titleCase(trip.mode)}</span>
+          </p>
         </div>
         <span className={`source-chip ${source}`}>{source==="ai"?"AI optimised":source==="rules"?"Route + rules":"Draft"}</span>
       </div>
@@ -707,63 +1087,177 @@ function Result({trip,plan,routeData,rules,costEstimate,source,warning,generatin
       )}
 
       {reportStep===0 && (
-        <section className="report-panel">
+        <section className="report-panel journey-overview">
+
           <div className="report-section-head">
-            <span className="eyebrow result-eyebrow">TRIP CRUX</span>
-            <h2>Everything important at a glance</h2>
+            <span className="eyebrow result-eyebrow">TRIP OVERVIEW</span>
+            <h2>Your journey from start to finish</h2>
+            <p>
+              A practical picture of how this trip is expected to happen.
+            </p>
           </div>
 
-          <div className="plan-summary-grid">
+          <div className="journey-route-banner">
+            <div className="journey-place from">
+              <small>FROM</small>
+              <strong>{trip.origin}</strong>
+            </div>
+
+            <div className="journey-route-line">
+              <span>{titleCase(trip.mode)}</span>
+              <ArrowRight size={21}/>
+            </div>
+
+            <div className="journey-place to">
+              <small>TO</small>
+              <strong>{finalDestination}</strong>
+            </div>
+          </div>
+
+          <div className="plan-summary-grid overview-metrics">
+
             <SummaryMetric
-              icon={<MapPinned size={18}/>}
-              label="Route"
-              value={`${trip.origin} → ${trip.destinations.filter(Boolean).join(" → ")}`}
+              icon={<CalendarDays size={19}/>}
+              label="Departure"
+              value={`${trip.startDate || "Date pending"}${trip.startTime ? ` · ${trip.startTime}` : ""}`}
             />
 
             <SummaryMetric
-              icon={<Car size={18}/>}
+              icon={<Route size={19}/>}
               label="Mode"
               value={titleCase(trip.mode)}
             />
 
             <SummaryMetric
-              icon={<CalendarDays size={18}/>}
-              label="Start"
-              value={`${trip.startDate || "Date pending"}${trip.startTime ? ` · ${trip.startTime}` : ""}`}
+              icon={<Sparkles size={19}/>}
+              label="Purpose"
+              value={purposeLabel}
             />
 
             <SummaryMetric
-              icon={<Clock3 size={18}/>}
-              label="Travel time"
-              value={totalTravelMin ? formatMinutes(totalTravelMin) : "To be confirmed"}
+              icon={<HeartHandshake size={19}/>}
+              label="Style"
+              value={styleLabel}
             />
 
             <SummaryMetric
-              icon={<Route size={18}/>}
-              label="Distance"
-              value={totalKm ? `${Math.round(totalKm)} km` : "To be confirmed"}
+              icon={
+                generating
+                  ? <LoaderCircle className="spin" size={19}/>
+                  : <Clock3 size={19}/>
+              }
+              label={trip.mode==="car" ? "Driving time" : trip.mode==="mixed" ? "Known road time" : "Travel time"}
+              value={
+                generating
+                  ? "Calculating..."
+                  : totalTravelMin
+                    ? formatMinutes(totalTravelMin)
+                    : trip.mode==="train" || trip.mode==="flight"
+                      ? "Live schedule needed"
+                      : "To be confirmed"
+              }
             />
 
             <SummaryMetric
-              icon={<UsersRound size={18}/>}
-              label="Travellers"
-              value={`${totalPeople} people · ${seats} seats`}
+              icon={
+                generating
+                  ? <LoaderCircle className="spin" size={19}/>
+                  : <Route size={19}/>
+              }
+              label={trip.mode==="mixed" ? "Known road distance" : "Distance"}
+              value={
+                generating
+                  ? "Calculating..."
+                  : totalKm
+                    ? `${Math.round(totalKm)} km`
+                    : trip.mode==="train" || trip.mode==="flight"
+                      ? "Live route needed"
+                      : "To be confirmed"
+              }
             />
+
           </div>
 
-          <div className="report-crux-note">
-            <ShieldCheck size={16}/>
-            <span>
-              This is the short version. Tap Next for journey flow and then the detailed day-wise itinerary.
-            </span>
+          <div className="journey-flow-card">
+            <div className="journey-flow-head">
+              <div>
+                <span className="eyebrow">HOW THE JOURNEY HAPPENS</span>
+                <h3>Start → travel → arrival</h3>
+              </div>
+
+              {trip.mode==="car" && practicalTravelMin>0 && (
+                <span className="practical-time-chip">
+                  Practical time ~ {formatMinutes(practicalTravelMin)}
+                </span>
+              )}
+            </div>
+
+            <div className="journey-flow">
+              {journeyFlow.map((item,index)=>(
+                <div className="journey-step" key={index}>
+                  <div className="journey-step-icon">
+                    {item.icon}
+                  </div>
+
+                  <div className="journey-step-copy">
+                    <strong>{item.title}</strong>
+                    <span>{item.detail}</span>
+                  </div>
+
+                  {index < journeyFlow.length-1 && (
+                    <div className="journey-step-connector"/>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
+
+          <div className="overview-bottom-grid">
+
+            <div className="overview-info-card">
+              <span className="overview-info-icon">
+                <UsersRound size={18}/>
+              </span>
+              <div>
+                <small>TRAVELLERS</small>
+                <strong>{totalPeople} people · {seats} seats assumed</strong>
+              </div>
+            </div>
+
+            <div className="overview-info-card">
+              <span className="overview-info-icon">
+                <Hotel size={18}/>
+              </span>
+              <div>
+                <small>OPTIONAL EXTRAS</small>
+                <strong>
+                  {selectedExtras.length
+                    ? selectedExtras.join(" · ")
+                    : "None selected"}
+                </strong>
+              </div>
+            </div>
+
+          </div>
+
+          {trip.mode==="mixed" && (
+            <div className="mixed-mode-note">
+              <CircleAlert size={17}/>
+              <span>
+                Mixed mode is not one long driving journey.
+                The next page should decide the practical combination of road,
+                train and/or flight segments.
+              </span>
+            </div>
+          )}
+
         </section>
       )}
       {reportStep===1 && (
         <section className="report-panel">
           <div className="report-section-head">
-            <span className="eyebrow result-eyebrow">JOURNEY AT A GLANCE</span>
-            <h2>Your route and practical travel details</h2>
+            <span className="eyebrow result-eyebrow">YOUR PLAN</span>
+            <h2>Route and day-wise itinerary</h2>
           </div>
       {routeData.length>0 && (
         <div className="route-summary">
@@ -785,7 +1279,8 @@ function Result({trip,plan,routeData,rules,costEstimate,source,warning,generatin
 
         </section>
       )}
-      <div className="days-list">
+      {reportStep===1 && (
+        <div className="days-list">
         {days.map((day:any,index:number)=>(
           <article className="day-card" key={index}>
             <div className="day-head">
@@ -825,11 +1320,12 @@ function Result({trip,plan,routeData,rules,costEstimate,source,warning,generatin
         ))}
       </div>
 
-      {reportStep===3 && (
+      )}
+      {reportStep===2 && (
         <section className="report-panel">
           <div className="report-section-head">
-            <span className="eyebrow result-eyebrow">TRAVELLER NOTES</span>
-            <h2>Only what you should remember</h2>
+            <span className="eyebrow result-eyebrow">ESSENTIALS</span>
+            <h2>Before you travel</h2>
           </div>
 
           <div className="traveller-rule-strip">
@@ -865,6 +1361,11 @@ function Result({trip,plan,routeData,rules,costEstimate,source,warning,generatin
             </div>
           )}
 
+          <NearbySuggestions
+            initialLocation={finalDestination}
+            purpose={trip.purpose}
+          />
+
           {Array.isArray(plan?.warnings) && plan.warnings.length>0 && (
             <section className="important-card">
               <h3>Before you travel</h3>
@@ -879,7 +1380,7 @@ function Result({trip,plan,routeData,rules,costEstimate,source,warning,generatin
           )}
         </section>
       )}
-      {reportStep===4 && (
+      {reportStep===2 && (
         <section className="report-panel">
           <div className="report-section-head">
             <span className="eyebrow result-eyebrow">SAVE & SHARE</span>
@@ -935,12 +1436,283 @@ function Result({trip,plan,routeData,rules,costEstimate,source,warning,generatin
             onClick={()=>setReportStep(0)}
           >
             <RotateCcw size={16}/>
-            Summary
+            Overview
           </button>
         )}
       </div>
     </section>
   )
+}
+
+function NearbySuggestions({
+  initialLocation,
+  purpose
+}:{
+  initialLocation:string;
+  purpose:Purpose;
+}) {
+  const [context,setContext]=React.useState(initialLocation);
+  const [kind,setKind]=React.useState<NearbyKind|null>(null);
+  const [places,setPlaces]=React.useState<NearbyPlace[]>([]);
+  const [loading,setLoading]=React.useState(false);
+  const [message,setMessage]=React.useState("");
+
+  React.useEffect(()=>{
+    setContext(initialLocation);
+    setKind(null);
+    setPlaces([]);
+    setMessage("");
+  },[initialLocation]);
+
+  /**
+   * Fetch only when the traveller explicitly asks for a category.
+   * Identical searches are reused from session memory.
+   */
+  const loadNearby=async(nextKind:NearbyKind)=>{
+    const cleanContext=context.trim();
+    if(!cleanContext)return;
+
+    setKind(nextKind);
+    setMessage("");
+
+    const cacheKey=
+      `${cleanContext.toLowerCase()}::${nextKind}`;
+
+    const cached=nearbySuggestionCache.get(cacheKey);
+
+    if(cached){
+      setPlaces(cached);
+      return;
+    }
+
+    setLoading(true);
+    setPlaces([]);
+
+    try{
+      const {data,error}=await supabase.functions.invoke(
+        "nearby-places",
+        {
+          body:{
+            location:cleanContext,
+            kind:nextKind,
+            limit:5
+          }
+        }
+      );
+
+      if(error)throw error;
+
+      const nextPlaces=
+        Array.isArray(data?.places)
+          ? data.places as NearbyPlace[]
+          : [];
+
+      nearbySuggestionCache.set(cacheKey,nextPlaces);
+      setPlaces(nextPlaces);
+
+      if(nextPlaces.length===0){
+        setMessage("No useful places found for this search.");
+      }
+    }catch(error){
+      console.error("Nearby places search failed",error);
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Could not load nearby suggestions."
+      );
+    }finally{
+      setLoading(false);
+    }
+  };
+
+  /**
+   * A selected place becomes the reference point for the next search.
+   * Example: select temple -> search hotels near that temple.
+   */
+  const useAsContext=(place:NearbyPlace)=>{
+    setContext(place.name);
+    setPlaces([]);
+    setKind(null);
+    setMessage("");
+  };
+
+  const categoryLabel=(value:NearbyKind|null)=>{
+    if(value==="hotel")return "Stay nearby";
+    if(value==="restaurant")return "Eat nearby";
+    if(value==="pilgrimage")return "Pilgrimage places";
+    if(value==="attraction")return "Places to visit";
+    return "";
+  };
+
+  return (
+    <section className="nearby-section">
+
+      <div className="nearby-head">
+        <div>
+          <span className="nearby-kicker">NEARBY & USEFUL</span>
+          <h3>What may help when you reach there?</h3>
+          <p>
+            Search only when you need it. Results are based around
+            <span className="nearby-context"> {context}</span>.
+          </p>
+        </div>
+      </div>
+
+      <div className="nearby-actions">
+
+        {(purpose==="pilgrimage" || purpose==="mixed") && (
+          <button
+            type="button"
+            className={kind==="pilgrimage"?"active":""}
+            onClick={()=>loadNearby("pilgrimage")}
+          >
+            <Sparkles size={18}/>
+            <span>
+              <span>Pilgrimage places</span>
+              <small>Temples & religious places</small>
+            </span>
+          </button>
+        )}
+
+        <button
+          type="button"
+          className={kind==="attraction"?"active":""}
+          onClick={()=>loadNearby("attraction")}
+        >
+          <MapPinned size={18}/>
+          <span>
+            <span>Places to visit</span>
+            <small>Useful nearby attractions</small>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          className={kind==="hotel"?"active":""}
+          onClick={()=>loadNearby("hotel")}
+        >
+          <Hotel size={18}/>
+          <span>
+            <span>Stay nearby</span>
+            <small>If you arrive late or need rest</small>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          className={kind==="restaurant"?"active":""}
+          onClick={()=>loadNearby("restaurant")}
+        >
+          <UtensilsCrossed size={18}/>
+          <span>
+            <span>Eat nearby</span>
+            <small>Restaurants around this location</small>
+          </span>
+        </button>
+
+      </div>
+
+      {loading && (
+        <div className="nearby-loading">
+          <LoaderCircle className="spin" size={18}/>
+          <span>Finding useful places near {context}...</span>
+        </div>
+      )}
+
+      {message && !loading && (
+        <div className="nearby-message">
+          {message}
+        </div>
+      )}
+
+      {!loading && places.length>0 && (
+        <div className="nearby-results">
+
+          <div className="nearby-results-head">
+            <span>{categoryLabel(kind)}</span>
+            <small>near {context}</small>
+          </div>
+
+          <div className="nearby-result-list">
+            {places.map((place,index)=>(
+              <article
+                className="nearby-place"
+                key={place.id || `${place.name}-${index}`}
+              >
+                <div className="nearby-place-main">
+                  <span className="nearby-place-number">
+                    {index+1}
+                  </span>
+
+                  <div className="nearby-place-copy">
+                    <span className="nearby-place-name">
+                      {place.name}
+                    </span>
+
+                    {place.address && (
+                      <span className="nearby-place-address">
+                        {place.address}
+                      </span>
+                    )}
+
+                    <div className="nearby-place-meta">
+                      {place.rating!=null && (
+                        <span>
+                          ★ {place.rating}
+                          {place.ratingCount
+                            ? ` (${place.ratingCount})`
+                            : ""}
+                        </span>
+                      )}
+
+                      {place.openNow===true && (
+                        <span className="open">Open now</span>
+                      )}
+
+                      {place.openNow===false && (
+                        <span className="closed">Closed now</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="nearby-place-actions">
+                  <button
+                    type="button"
+                    onClick={()=>useAsContext(place)}
+                  >
+                    Search around here
+                  </button>
+
+                  {place.mapsUri && (
+                    <button
+                      type="button"
+                      onClick={()=>
+                        window.open(
+                          place.mapsUri!,
+                          "_blank",
+                          "noopener,noreferrer"
+                        )
+                      }
+                    >
+                      View location
+                    </button>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="nearby-context-tip">
+            Select <span>Search around here</span> on a temple,
+            hotel or attraction, then choose another category.
+          </div>
+
+        </div>
+      )}
+
+    </section>
+  );
 }
 
 function SummaryMetric({icon,label,value}:{icon:React.ReactNode;label:string;value:string}) {
@@ -1232,6 +2004,16 @@ function buildShareText(trip:TripState,plan:any,routeData:any[]){
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(<App/>);
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -11,3 +11,5 @@ Thumbs.db
 .env.local
 
 .env.local
+
+supabase/.temp/
