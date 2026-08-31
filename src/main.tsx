@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import ReactDOM from "react-dom/client";
 import {
   MapPin, Menu, UserRound, ArrowRight, ArrowLeft, Car, Train, Plane,
@@ -130,6 +130,7 @@ function App() {
   const [plan, setPlan] = React.useState<any>(null);
   const [routeData, setRouteData] = React.useState<any[]>([]);
   const [rules, setRules] = React.useState<any>(null);
+  const [recommendation, setRecommendation] = React.useState<any>(null);
   const [costEstimate, setCostEstimate] = React.useState<any>(null);
   const [generationSource, setGenerationSource] = React.useState<"local" | "rules" | "ai">("local");
   const [generationWarning, setGenerationWarning] = React.useState("");
@@ -214,6 +215,7 @@ function App() {
     setPlan(null);
     setRouteData([]);
     setRules(null);
+    setRecommendation(null);
     setCostEstimate(null);
     setGenerationWarning("");
   };
@@ -360,6 +362,7 @@ function App() {
 
       setRouteData(routes);
       setRules(data?.rules || null);
+      setRecommendation(data?.recommendation || null);
       setCostEstimate(data?.costEstimate || null);
 
       if (data?.plan) {
@@ -829,38 +832,42 @@ function ReviewStep({trip,onBack,onGenerate,generating}:{trip:TripState;onBack:(
   )
 }
 
-function Result({trip,plan,routeData,rules,costEstimate,source,warning,generating,saveState,onSave,onEdit,onRegenerate}:{
-  trip:TripState;plan:any;routeData:any[];rules:any;costEstimate:any;source:string;warning:string;generating:boolean;saveState:string;
-  onSave:()=>void;onEdit:()=>void;onRegenerate:()=>void;
+function Result({
+  trip,
+  plan,
+  routeData,
+  recommendation,
+  rules,
+  costEstimate,
+  source,
+  warning,
+  generating,
+  saveState,
+  onSave,
+  onEdit,
+  onRegenerate
+}:{
+  trip:TripState;
+  plan:any;
+  routeData:any[];
+  recommendation?:any;
+  rules:any;
+  costEstimate:any;
+  source:string;
+  warning:string;
+  generating:boolean;
+  saveState:string;
+  onSave:()=>void;
+  onEdit:()=>void;
+  onRegenerate:()=>void;
 }) {
-  const days=Array.isArray(plan?.days)?plan.days:[];
-  const totalKm=routeData.reduce((sum,leg)=>sum+(leg.distanceKm||0),0);
-  const totalTravelMin=routeData.reduce((sum,leg)=>sum+(leg.durationMinutes||0),0);
-
-  // Client-side report navigation only.
-  // Changing report sections must never trigger server/API calls.
   const [reportStep,setReportStep]=React.useState(0);
 
-  // Report sections are modular so more sections can be plugged in later.
-  // Keep the report simple: understand the trip, see the plan, then review essentials.
-  const reportSteps=[
-    {label:"Overview",icon:<MapPinned size={16}/>},
-    {label:"Plan",icon:<CalendarDays size={16}/>},
-    {label:"Essentials",icon:<ShieldCheck size={16}/>}
-  ];
-
-  // Move backward safely without leaving the valid report range.
-  const previousReportStep=()=>{
-    setReportStep(current=>Math.max(0,current-1));
-  };
-
-  // Move forward safely without leaving the valid report range.
-  const nextReportStep=()=>{
-    setReportStep(current=>Math.min(reportSteps.length-1,current+1));
-  };
-  const totalPeople=trip.adults+trip.children0to5+trip.children6to12+trip.seniors;
-  const seats=trip.adults+trip.children6to12+trip.seniors;
-  const summaryNotes=Array.isArray(plan?.summary?.notes)?plan.summary.notes:[];
+  const totalPeople =
+    trip.adults +
+    trip.children0to5 +
+    trip.children6to12 +
+    trip.seniors;
 
   const finalDestination =
     trip.destinations.filter(Boolean).at(-1) || "Destination";
@@ -875,575 +882,883 @@ function Result({trip,plan,routeData,rules,costEstimate,source,warning,generatin
       ? "Senior friendly"
       : titleCase(trip.style);
 
-  // For road journeys, add practical break time on top of Google driving time.
-  // Train/flight schedules must come from their respective live providers.
-  const breakEveryMinutes =
-    Number(rules?.breakEveryMinutes) || 150;
+  const totalKm =
+    routeData.reduce(
+      (sum,leg)=>sum+(Number(leg?.distanceKm)||0),
+      0
+    );
 
-  const breakDurationMinutes =
-    Number(rules?.breakDurationMinutes) || 20;
+  const totalTravelMin =
+    routeData.reduce(
+      (sum,leg)=>sum+(Number(leg?.durationMinutes)||0),
+      0
+    );
 
-  const estimatedRoadBreaks =
-    trip.mode === "car" && totalTravelMin > breakEveryMinutes
-      ? Math.floor(totalTravelMin / breakEveryMinutes)
-      : 0;
+  const snapshot =
+    plan?.snapshot || null;
 
-  const practicalTravelMin =
-    trip.mode === "car" && totalTravelMin
-      ? totalTravelMin + (estimatedRoadBreaks * breakDurationMinutes)
-      : totalTravelMin;
+  const itineraryDays =
+    Array.isArray(plan?.itinerary?.days)
+      ? plan.itinerary.days
+      : Array.isArray(plan?.days)
+        ? plan.days
+        : [];
 
-  const selectedExtras = [
-    trip.facilities?.stay ? "Stay" : null,
-    trip.facilities?.meals ? "Meals" : null,
-    trip.facilities?.restStops ? "Rest stops" : null,
-    trip.facilities?.visitBuffer ? "Ready / visit buffer" : null
-  ].filter(Boolean) as string[];
+  const modeComparison =
+    Array.isArray(plan?.modeComparison)
+      ? plan.modeComparison
+      : [];
 
-  const purposeArrivalText = (() => {
-    switch (trip.purpose) {
-      case "pilgrimage":
-        return "Reach destination and prepare for darshan / religious visit";
-      case "business":
-        return "Reach destination with buffer for check-in / meeting";
-      case "family_visit":
-        return "Reach destination and continue to family / personal visit";
-      case "mixed":
-        return "Reach destination and continue with the planned activities";
+  const confirmations =
+    Array.isArray(plan?.confirmations)
+      ? plan.confirmations
+      : [];
+
+  const planWarnings =
+    Array.isArray(plan?.warnings)
+      ? plan.warnings
+      : [];
+
+  const discoveryContext =
+    plan?.discoveryContext || null;
+
+  const recommendedMode =
+    snapshot?.recommendedMode ||
+    recommendation?.modeLabel ||
+    (
+      recommendation?.recommendedMode
+        ? titleCase(recommendation.recommendedMode)
+        : titleCase(trip.mode)
+    );
+
+  const headline =
+    snapshot?.headline ||
+    recommendation?.headline ||
+    (
+      trip.purpose === "pilgrimage"
+        ? `Travel comfortably to ${finalDestination} and protect energy for the visit`
+        : `A practical ${styleLabel.toLowerCase()} plan for this journey`
+    );
+
+  const roadDistance =
+    snapshot?.routeSummary?.distance ||
+    (
+      totalKm > 0
+        ? `${Math.round(totalKm)} km`
+        : null
+    );
+
+  const rawTravelTime =
+    snapshot?.routeSummary?.rawTravelTime ||
+    (
+      totalTravelMin > 0
+        ? formatMinutes(totalTravelMin)
+        : null
+    );
+
+  const practicalTravelTime =
+    snapshot?.routeSummary?.practicalTravelTime ||
+    recommendation?.roadComparator?.practicalLabel ||
+    rawTravelTime ||
+    "Plan estimate";
+
+  const stayAdvice =
+    snapshot?.overnightStay || null;
+
+  const visitStrategy =
+    snapshot?.visitStrategy || null;
+
+  const shortReason =
+    snapshot?.shortReason ||
+    (
+      Array.isArray(recommendation?.reasons)
+        ? recommendation.reasons[0]
+        : null
+    );
+
+  const aiMoments =
+    Array.isArray(snapshot?.keyMoments)
+      ? snapshot.keyMoments
+      : [];
+
+  const fallbackMoments = [
+    {
+      time:trip.startTime || "Start",
+      type:"travel",
+      label:`Leave ${trip.origin}`,
+      note:null
+    },
+    {
+      time:"Journey",
+      type:"travel",
+      label:recommendedMode,
+      note:practicalTravelTime
+        ? `Allow about ${practicalTravelTime}`
+        : null
+    },
+    {
+      time:"Arrival",
+      type:"arrival",
+      label:`Reach ${finalDestination}`,
+      note:trip.facilities?.visitBuffer
+        ? "Freshen up before the next activity"
+        : null
+    },
+    ...(trip.purpose==="pilgrimage"
+      ? [{
+          time:stayAdvice?.recommended
+            ? "Next morning"
+            : "After arrival",
+          type:"visit",
+          label:"Darshan / visit",
+          note:visitStrategy
+        }]
+      : [])
+  ];
+
+  const keyMoments =
+    aiMoments.length
+      ? aiMoments.slice(0,6)
+      : fallbackMoments;
+
+  const reportSteps = [
+    {
+      label:"Best Journey",
+      caption:"Trip snapshot",
+      icon:<MapPinned size={18}/>,
+      tone:"green"
+    },
+    {
+      label:"Full Plan",
+      caption:"Day-by-day itinerary",
+      icon:<CalendarDays size={18}/>,
+      tone:"blue"
+    },
+    {
+      label:"Around Your Trip",
+      caption:"Stay, eat and visit",
+      icon:<Sparkles size={18}/>,
+      tone:"orange"
+    }
+  ];
+
+  const itemIcon=(type:string)=>{
+    switch(type){
+      case "ready":
+        return <UserRoundCheck size={18}/>;
+      case "travel":
+        return trip.mode==="flight"
+          ? <Plane size={18}/>
+          : trip.mode==="train"
+            ? <Train size={18}/>
+            : <Car size={18}/>;
+      case "meal":
+        return <UtensilsCrossed size={18}/>;
+      case "rest":
+        return <Coffee size={18}/>;
+      case "arrival":
+        return <MapPin size={18}/>;
+      case "stay":
+        return <Hotel size={18}/>;
+      case "visit":
+        return <MapPinned size={18}/>;
+      case "return":
+        return <Route size={18}/>;
       default:
-        return "Reach destination and begin the leisure plan";
+        return <Clock3 size={18}/>;
     }
-  })();
+  };
 
-  // Overview deliberately gives a simple start-to-end picture.
-  // Exact train/flight timings are never invented here.
-  const journeyFlow = (() => {
-    if (trip.mode === "car") {
-      const flow = [
-        {
-          icon: <MapPin size={18}/>,
-          title: `Start from ${trip.origin}`,
-          detail: trip.startTime
-            ? `${trip.startDate || ""} at ${trip.startTime}`
-            : trip.startDate || "Departure time to be decided"
-        },
-        {
-          icon: <Car size={18}/>,
-          title: "Drive toward destination",
-          detail: totalTravelMin
-            ? `${formatMinutes(totalTravelMin)} Google road-driving time`
-            : "Road time is being calculated"
-        }
-      ];
-
-      if (estimatedRoadBreaks > 0) {
-        flow.push({
-          icon: <Coffee size={18}/>,
-          title: `${estimatedRoadBreaks} practical break${estimatedRoadBreaks === 1 ? "" : "s"} recommended`,
-          detail: `About every ${formatMinutes(breakEveryMinutes)} · roughly ${breakDurationMinutes} min each`
-        });
-      }
-
-      flow.push(
-        {
-          icon: <MapPinned size={18}/>,
-          title: `Arrive in ${finalDestination}`,
-          detail: practicalTravelMin
-            ? `Allow roughly ${formatMinutes(practicalTravelMin)} including planned road breaks`
-            : "Arrival depends on final road conditions"
-        },
-        {
-          icon: <Sparkles size={18}/>,
-          title: purposeArrivalText,
-          detail: `${purposeLabel} trip · ${styleLabel} planning`
-        }
-      );
-
-      return flow;
+  const itemTone=(type:string)=>{
+    switch(type){
+      case "travel": return "blue";
+      case "meal": return "orange";
+      case "rest": return "amber";
+      case "arrival": return "green";
+      case "stay": return "purple";
+      case "visit": return "teal";
+      case "ready": return "rose";
+      case "return": return "blue";
+      default: return "slate";
     }
+  };
 
-    if (trip.mode === "train") {
-      return [
-        {
-          icon: <MapPin size={18}/>,
-          title: `Start from ${trip.origin}`,
-          detail: "Leave enough time to reach the boarding station"
-        },
-        {
-          icon: <Train size={18}/>,
-          title: "Board the suitable train",
-          detail: "Exact train, departure time and rail duration require live railway data"
-        },
-        {
-          icon: <MapPinned size={18}/>,
-          title: `Arrive near ${finalDestination}`,
-          detail: "Continue from the arrival station to the final destination"
-        },
-        {
-          icon: <Sparkles size={18}/>,
-          title: purposeArrivalText,
-          detail: `${purposeLabel} trip · ${styleLabel} planning`
-        }
-      ];
-    }
-
-    if (trip.mode === "flight") {
-      return [
-        {
-          icon: <MapPin size={18}/>,
-          title: `Start from ${trip.origin}`,
-          detail: "Travel to the departure airport with check-in buffer"
-        },
-        {
-          icon: <Plane size={18}/>,
-          title: "Take the suitable flight",
-          detail: "Exact flight, fare and schedule require live airline data"
-        },
-        {
-          icon: <MapPinned size={18}/>,
-          title: `Transfer to ${finalDestination}`,
-          detail: "Allow airport exit, baggage and last-mile transfer time"
-        },
-        {
-          icon: <Sparkles size={18}/>,
-          title: purposeArrivalText,
-          detail: `${purposeLabel} trip · ${styleLabel} planning`
-        }
-      ];
-    }
-
-    return [
-      {
-        icon: <MapPin size={18}/>,
-        title: `Start from ${trip.origin}`,
-        detail: trip.startTime
-          ? `${trip.startDate || ""} at ${trip.startTime}`
-          : trip.startDate || "Departure time to be decided"
-      },
-      {
-        icon: <Car size={18}/>,
-        title: "First-mile transfer",
-        detail: "Use road transport to reach the appropriate station / airport / interchange"
-      },
-      {
-        icon: <Route size={18}/>,
-        title: "Main journey segment",
-        detail: "The detailed plan will decide where Train / Flight / Car makes the most practical sense"
-      },
-      {
-        icon: <Car size={18}/>,
-        title: "Last-mile transfer",
-        detail: `Continue from the main arrival point to ${finalDestination}`
-      },
-      {
-        icon: <Sparkles size={18}/>,
-        title: purposeArrivalText,
-        detail: `${purposeLabel} trip · ${styleLabel} planning`
-      }
-    ];
-  })();
-
-  const textPlan=buildShareText(trip,plan,routeData);
+  const textPlan = [
+    `${trip.origin} to ${finalDestination}`,
+    `${purposeLabel} | ${styleLabel} | ${totalPeople} travellers`,
+    "",
+    `Best journey: ${recommendedMode}`,
+    headline,
+    practicalTravelTime
+      ? `Practical travel: ${practicalTravelTime}`
+      : "",
+    visitStrategy
+      ? `Visit strategy: ${visitStrategy}`
+      : "",
+    "",
+    ...itineraryDays.flatMap((day:any,index:number)=>[
+      `Day ${day?.day || index+1}: ${day?.title || ""}`,
+      ...(Array.isArray(day?.items)
+        ? day.items.map(
+            (item:any)=>
+              `${item?.time || ""} - ${item?.title || item?.type || ""}`
+          )
+        : [])
+    ])
+  ]
+  .filter(Boolean)
+  .join("\n");
 
   const copy=async()=>{
-    await navigator.clipboard.writeText(textPlan);
+    try{
+      await navigator.clipboard.writeText(textPlan);
+    }catch(error){
+      console.warn("Could not copy plan",error);
+    }
   };
 
   const whatsapp=()=>{
-    window.open(`https://wa.me/?text=${encodeURIComponent(textPlan)}`,"_blank","noopener,noreferrer");
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(textPlan)}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
   };
 
   return (
-    <section className="result-shell">
-      <div className="result-top">
-        <div>
-          <span className="eyebrow">YOUR TRAVEL PLAN</span>
-          <div className="result-route-title">
+    <section className="mtp-report-shell">
+
+      {generating && (
+        <div className="mtp-planning-overlay">
+
+          <div className="mtp-planning-box">
+
+            <span className="mtp-planning-icon">
+              <LoaderCircle
+                className="spin"
+                size={30}
+              />
+            </span>
+
             <div>
-              <small>FROM</small>
-              <strong>{trip.origin}</strong>
+              <span className="mtp-planning-label">
+                MYTRAVELPLANNER
+              </span>
+
+              <h2>Planning your trip</h2>
+
+              <p>
+                Reviewing route, travellers, breaks,
+                stay and visit timing.
+              </p>
+
+              <small>
+                Please wait a few seconds...
+              </small>
             </div>
 
-            <ArrowRight className="result-route-arrow" size={24}/>
-
-            <div>
-              <small>TO</small>
-              <strong>{finalDestination}</strong>
-            </div>
           </div>
 
-          <p className="result-meta">
-            <span>{purposeLabel}</span>
-            <span>{styleLabel}</span>
-            <span>{totalPeople} travellers</span>
-            <span>{titleCase(trip.mode)}</span>
-          </p>
         </div>
-        <span className={`source-chip ${source}`}>{source==="ai"?"AI optimised":source==="rules"?"Route + rules":"Draft"}</span>
-      </div>
+      )}
+
+      <header className="mtp-trip-context">
+
+        <div className="mtp-context-route">
+          <span className="mtp-route-pin">
+            <MapPin size={18}/>
+          </span>
+
+          <strong>{trip.origin}</strong>
+
+          <ArrowRight size={18}/>
+
+          <strong>{finalDestination}</strong>
+        </div>
+
+        <div className="mtp-context-chips">
+          <span>{purposeLabel}</span>
+          <span>{styleLabel}</span>
+          <span>{totalPeople} travellers</span>
+
+          {trip.startDate && (
+            <span>
+              {new Date(
+                `${trip.startDate}T00:00:00`
+              ).toLocaleDateString(
+                "en-IN",
+                {
+                  day:"numeric",
+                  month:"short",
+                  year:"numeric"
+                }
+              )}
+            </span>
+          )}
+        </div>
+
+      </header>
+
+
+      <nav
+        className="mtp-report-tabs"
+        aria-label="Travel report sections"
+      >
+        {reportSteps.map((item,index)=>(
+          <button
+            key={item.label}
+            type="button"
+            className={
+              reportStep===index
+                ? `active ${item.tone}`
+                : item.tone
+            }
+            onClick={()=>setReportStep(index)}
+          >
+            <span className="mtp-tab-icon">
+              {item.icon}
+            </span>
+
+            <span>
+              <strong>{item.label}</strong>
+              <small>{item.caption}</small>
+            </span>
+          </button>
+        ))}
+      </nav>
+
 
       {warning && (
-        <div className="warning-banner"><CircleAlert size={18}/><span>{warning}</span></div>
+        <div className="mtp-warning">
+          <CircleAlert size={18}/>
+          <span>{warning}</span>
+        </div>
       )}
+
 
       {reportStep===0 && (
-        <section className="report-panel journey-overview">
+        <section className="mtp-page mtp-snapshot-page">
 
-          <div className="report-section-head">
-            <span className="eyebrow result-eyebrow">TRIP OVERVIEW</span>
-            <h2>Your journey from start to finish</h2>
-            <p>
-              A practical picture of how this trip is expected to happen.
-            </p>
-          </div>
+          <div className="mtp-snapshot-hero">
 
-          <div className="journey-route-banner">
-            <div className="journey-place from">
-              <small>FROM</small>
-              <strong>{trip.origin}</strong>
+            <div className="mtp-snapshot-icon">
+              {trip.mode==="flight"
+                ? <Plane size={26}/>
+                : trip.mode==="train"
+                  ? <Train size={26}/>
+                  : <Car size={26}/>}
             </div>
 
-            <div className="journey-route-line">
-              <span>{titleCase(trip.mode)}</span>
-              <ArrowRight size={21}/>
+            <div className="mtp-snapshot-main">
+              <span className="mtp-kicker">
+                BEST FOR YOUR TRIP
+              </span>
+
+              <h1>{recommendedMode}</h1>
+
+              <p>{headline}</p>
             </div>
 
-            <div className="journey-place to">
-              <small>TO</small>
-              <strong>{finalDestination}</strong>
-            </div>
-          </div>
-
-          <div className="plan-summary-grid overview-metrics">
-
-            <SummaryMetric
-              icon={<CalendarDays size={19}/>}
-              label="Departure"
-              value={`${trip.startDate || "Date pending"}${trip.startTime ? ` · ${trip.startTime}` : ""}`}
-            />
-
-            <SummaryMetric
-              icon={<Route size={19}/>}
-              label="Mode"
-              value={titleCase(trip.mode)}
-            />
-
-            <SummaryMetric
-              icon={<Sparkles size={19}/>}
-              label="Purpose"
-              value={purposeLabel}
-            />
-
-            <SummaryMetric
-              icon={<HeartHandshake size={19}/>}
-              label="Style"
-              value={styleLabel}
-            />
-
-            <SummaryMetric
-              icon={
-                generating
-                  ? <LoaderCircle className="spin" size={19}/>
-                  : <Clock3 size={19}/>
-              }
-              label={trip.mode==="car" ? "Driving time" : trip.mode==="mixed" ? "Known road time" : "Travel time"}
-              value={
-                generating
-                  ? "Calculating..."
-                  : totalTravelMin
-                    ? formatMinutes(totalTravelMin)
-                    : trip.mode==="train" || trip.mode==="flight"
-                      ? "Live schedule needed"
-                      : "To be confirmed"
-              }
-            />
-
-            <SummaryMetric
-              icon={
-                generating
-                  ? <LoaderCircle className="spin" size={19}/>
-                  : <Route size={19}/>
-              }
-              label={trip.mode==="mixed" ? "Known road distance" : "Distance"}
-              value={
-                generating
-                  ? "Calculating..."
-                  : totalKm
-                    ? `${Math.round(totalKm)} km`
-                    : trip.mode==="train" || trip.mode==="flight"
-                      ? "Live route needed"
-                      : "To be confirmed"
-              }
-            />
+            {source==="ai" && (
+              <span className="mtp-ai-chip">
+                <Sparkles size={14}/>
+                Smart plan
+              </span>
+            )}
 
           </div>
 
-          <div className="journey-flow-card">
-            <div className="journey-flow-head">
-              <div>
-                <span className="eyebrow">HOW THE JOURNEY HAPPENS</span>
-                <h3>Start → travel → arrival</h3>
-              </div>
 
-              {trip.mode==="car" && practicalTravelMin>0 && (
-                <span className="practical-time-chip">
-                  Practical time ~ {formatMinutes(practicalTravelMin)}
+          <div className="mtp-fact-grid">
+
+            {roadDistance && (
+              <article className="mtp-fact-card blue">
+                <span className="mtp-fact-icon">
+                  <Route size={19}/>
                 </span>
-              )}
+                <small>DISTANCE</small>
+                <strong>{roadDistance}</strong>
+              </article>
+            )}
+
+            {rawTravelTime && (
+              <article className="mtp-fact-card teal">
+                <span className="mtp-fact-icon">
+                  <Clock3 size={19}/>
+                </span>
+                <small>RAW TRAVEL</small>
+                <strong>{rawTravelTime}</strong>
+              </article>
+            )}
+
+            <article className="mtp-fact-card green">
+              <span className="mtp-fact-icon">
+                <HeartHandshake size={19}/>
+              </span>
+              <small>PRACTICAL TIME</small>
+              <strong>{practicalTravelTime}</strong>
+            </article>
+
+            <article className="mtp-fact-card purple">
+              <span className="mtp-fact-icon">
+                <Hotel size={19}/>
+              </span>
+              <small>STAY</small>
+              <strong>
+                {stayAdvice?.recommended
+                  ? stayAdvice?.location || "Recommended"
+                  : "Not essential"}
+              </strong>
+            </article>
+
+          </div>
+
+
+          <section className="mtp-trip-picture">
+
+            <div className="mtp-section-heading">
+              <div>
+                <span className="mtp-kicker">
+                  YOUR TRIP PICTURE
+                </span>
+                <h2>The journey at a glance</h2>
+              </div>
             </div>
 
-            <div className="journey-flow">
-              {journeyFlow.map((item,index)=>(
-                <div className="journey-step" key={index}>
-                  <div className="journey-step-icon">
-                    {item.icon}
-                  </div>
+            <div className="mtp-moment-track">
 
-                  <div className="journey-step-copy">
-                    <strong>{item.title}</strong>
-                    <span>{item.detail}</span>
-                  </div>
+              {keyMoments.map(
+                (moment:any,index:number)=>(
+                  <article
+                    className="mtp-moment"
+                    key={index}
+                  >
+                    <span
+                      className={
+                        `mtp-moment-icon ${itemTone(moment?.type)}`
+                      }
+                    >
+                      {itemIcon(moment?.type)}
+                    </span>
 
-                  {index < journeyFlow.length-1 && (
-                    <div className="journey-step-connector"/>
+                    <div>
+                      <small>{moment?.time || ""}</small>
+                      <strong>
+                        {moment?.label || "Trip step"}
+                      </strong>
+
+                      {moment?.note && (
+                        <span>{moment.note}</span>
+                      )}
+                    </div>
+                  </article>
+                )
+              )}
+
+            </div>
+
+          </section>
+
+
+          <div className="mtp-snapshot-bottom">
+
+            {visitStrategy && (
+              <article className="mtp-highlight-card teal">
+                <span>
+                  <MapPinned size={20}/>
+                </span>
+
+                <div>
+                  <small>VISIT STRATEGY</small>
+                  <strong>{visitStrategy}</strong>
+                </div>
+              </article>
+            )}
+
+            {stayAdvice?.recommended && (
+              <article className="mtp-highlight-card purple">
+                <span>
+                  <Hotel size={20}/>
+                </span>
+
+                <div>
+                  <small>OVERNIGHT PLAN</small>
+                  <strong>
+                    {stayAdvice.location || finalDestination}
+                  </strong>
+
+                  {stayAdvice.reason && (
+                    <p>{stayAdvice.reason}</p>
                   )}
                 </div>
-              ))}
-            </div>
-          </div>
+              </article>
+            )}
 
-          <div className="overview-bottom-grid">
+            {shortReason && (
+              <article className="mtp-highlight-card green">
+                <span>
+                  <Check size={20}/>
+                </span>
 
-            <div className="overview-info-card">
-              <span className="overview-info-icon">
-                <UsersRound size={18}/>
-              </span>
-              <div>
-                <small>TRAVELLERS</small>
-                <strong>{totalPeople} people · {seats} seats assumed</strong>
-              </div>
-            </div>
-
-            <div className="overview-info-card">
-              <span className="overview-info-icon">
-                <Hotel size={18}/>
-              </span>
-              <div>
-                <small>OPTIONAL EXTRAS</small>
-                <strong>
-                  {selectedExtras.length
-                    ? selectedExtras.join(" · ")
-                    : "None selected"}
-                </strong>
-              </div>
-            </div>
-
-          </div>
-
-          {trip.mode==="mixed" && (
-            <div className="mixed-mode-note">
-              <CircleAlert size={17}/>
-              <span>
-                Mixed mode is not one long driving journey.
-                The next page should decide the practical combination of road,
-                train and/or flight segments.
-              </span>
-            </div>
-          )}
-
-        </section>
-      )}
-      {reportStep===1 && (
-        <section className="report-panel">
-          <div className="report-section-head">
-            <span className="eyebrow result-eyebrow">YOUR PLAN</span>
-            <h2>Route and day-wise itinerary</h2>
-          </div>
-      {routeData.length>0 && (
-        <div className="route-summary">
-          {routeData.map((leg,i)=>(
-            <div className="route-leg" key={i}>
-              <span>{leg.from} â†’ {leg.to}</span>
-              <strong>{leg.distanceKm!=null?`${leg.distanceKm} km`:"Distance pending"}</strong>
-              <small>{leg.durationMinutes!=null?`${formatMinutes(leg.durationMinutes)} driving`:"Time pending"}</small>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {summaryNotes.length>0 && (
-        <div className="summary-notes">
-          {summaryNotes.map((n:string,i:number)=><span key={i}><Check size={14}/>{n}</span>)}
-        </div>
-      )}
-
-        </section>
-      )}
-      {reportStep===1 && (
-        <div className="days-list">
-        {days.map((day:any,index:number)=>(
-          <article className="day-card" key={index}>
-            <div className="day-head">
-              <span className="day-chip">DAY {day.day || index+1}</span>
-              <div>
-                <h2>{day.title || `Day ${index+1}`}</h2>
-                {day.date && <small>{day.date}</small>}
-              </div>
-            </div>
-
-            <div className="timeline">
-              {(Array.isArray(day.items)?day.items:[]).map((item:any,itemIndex:number)=>(
-                <div className="timeline-row" key={itemIndex}>
-                  <span className="timeline-time">{item.time || "â€”"}</span>
-                  <span className="timeline-dot"/>
-                  <div>
-                    <span>{item.title || item.type || "Plan item"}</span>
-                    <small>
-                      {item.durationMinutes ? `${formatMinutes(item.durationMinutes)} Â· ` : ""}
-                      {item.note || ""}
-                    </small>
-                  </div>
+                <div>
+                  <small>WHY THIS PLAN</small>
+                  <strong>{shortReason}</strong>
                 </div>
-              ))}
-            </div>
-
-            {day.stay && (
-              <div className="stay-strip"><Hotel size={17}/><span><b>Stay:</b> {day.stay}</span></div>
+              </article>
             )}
 
-            {Array.isArray(day.warnings) && day.warnings.length>0 && (
-              <div className="day-warnings">
-                {day.warnings.map((w:string,i:number)=><span key={i}><CircleAlert size={14}/>{w}</span>)}
+          </div>
+
+
+          {modeComparison.length>0 && (
+            <section className="mtp-mode-strip">
+
+              <span className="mtp-kicker">
+                QUICK COMPARISON
+              </span>
+
+              <div className="mtp-mode-list">
+                {modeComparison
+                  .slice(0,3)
+                  .map((mode:any,index:number)=>(
+                    <div
+                      className={
+                        `mtp-mode-item ${mode?.verdict || ""}`
+                      }
+                      key={index}
+                    >
+                      <strong>{mode?.mode}</strong>
+                      <span>{mode?.reason}</span>
+                    </div>
+                  ))}
               </div>
-            )}
-          </article>
-        ))}
-      </div>
 
-      )}
-      {reportStep===2 && (
-        <section className="report-panel">
-          <div className="report-section-head">
-            <span className="eyebrow result-eyebrow">ESSENTIALS</span>
-            <h2>Before you travel</h2>
-          </div>
-
-          <div className="traveller-rule-strip">
-            <Baby size={17}/>
-            <span>
-              <b>Age 0–5:</b> no separate seat assumed by default ·
-              <b> Age 6–12:</b> separate seat assumed.
-              Final airline/rail/operator rules should be checked before booking.
-            </span>
-          </div>
-
-          {rules && (
-            <div className="practical-rules">
-              <span>
-                <Coffee size={15}/>
-                Break every ~{rules.breakEveryMinutes || "—"} min
-              </span>
-
-              <span>
-                <Clock3 size={15}/>
-                Break ~{rules.breakDurationMinutes || "—"} min
-              </span>
-
-              <span>
-                <UserRoundCheck size={15}/>
-                Getting ready ~{rules.gettingReadyMinutes || "—"} min
-              </span>
-
-              <span>
-                <UtensilsCrossed size={15}/>
-                Meal buffer ~{rules.mealMinutes || "—"} min
-              </span>
-            </div>
-          )}
-
-          <NearbySuggestions
-            initialLocation={finalDestination}
-            purpose={trip.purpose}
-          />
-
-          {Array.isArray(plan?.warnings) && plan.warnings.length>0 && (
-            <section className="important-card">
-              <h3>Before you travel</h3>
-
-              {plan.warnings.map((w:string,i:number)=>(
-                <p key={i}>
-                  <CircleAlert size={15}/>
-                  {w}
-                </p>
-              ))}
             </section>
           )}
+
         </section>
       )}
-      {reportStep===2 && (
-        <section className="report-panel">
-          <div className="report-section-head">
-            <span className="eyebrow result-eyebrow">SAVE & SHARE</span>
-            <h2>Take the complete plan with you</h2>
+
+
+      {reportStep===1 && (
+        <section className="mtp-page mtp-itinerary-page">
+
+          <div className="mtp-section-heading">
+            <div>
+              <span className="mtp-kicker">
+                FULL PLAN
+              </span>
+              <h2>Your practical itinerary</h2>
+              <p>
+                Times, travel, food, rest, stay and visit
+                in the order you need them.
+              </p>
+            </div>
           </div>
 
-          <p className="share-intro">
-            Save the plan or share the complete itinerary when you are ready.
-          </p>
+
+          {itineraryDays.length===0 && (
+            <div className="mtp-empty-state">
+              <CalendarDays size={24}/>
+              <strong>Detailed itinerary is being prepared</strong>
+            </div>
+          )}
+
+
+          <div className="mtp-day-list">
+
+            {itineraryDays.map(
+              (day:any,index:number)=>{
+
+                const dayStay =
+                  typeof day?.stay==="string"
+                    ? day.stay
+                    : day?.stay?.needed
+                      ? day?.stay?.location
+                      : null;
+
+                return (
+                  <article
+                    className="mtp-day-card"
+                    key={index}
+                  >
+
+                    <header className="mtp-day-header">
+                      <span className="mtp-day-number">
+                        DAY {day?.day || index+1}
+                      </span>
+
+                      <div>
+                        <h3>
+                          {day?.title || `Day ${index+1}`}
+                        </h3>
+
+                        {day?.date && (
+                          <small>{day.date}</small>
+                        )}
+                      </div>
+                    </header>
+
+
+                    <div className="mtp-timeline">
+
+                      {(Array.isArray(day?.items)
+                        ? day.items
+                        : []
+                      ).map(
+                        (item:any,itemIndex:number)=>(
+                          <div
+                            className="mtp-timeline-row"
+                            key={itemIndex}
+                          >
+
+                            <div className="mtp-timeline-time">
+                              {item?.time || ""}
+                            </div>
+
+                            <span
+                              className={
+                                `mtp-timeline-icon ${itemTone(item?.type)}`
+                              }
+                            >
+                              {itemIcon(item?.type)}
+                            </span>
+
+                            <div className="mtp-timeline-copy">
+
+                              <strong>
+                                {item?.title ||
+                                 item?.type ||
+                                 "Plan item"}
+                              </strong>
+
+                              <div className="mtp-timeline-meta">
+
+                                {item?.durationMinutes ? (
+                                  <span>
+                                    <Clock3 size={13}/>
+                                    {formatMinutes(
+                                      item.durationMinutes
+                                    )}
+                                  </span>
+                                ) : null}
+
+                                {item?.endTime ? (
+                                  <span>
+                                    until {item.endTime}
+                                  </span>
+                                ) : null}
+
+                              </div>
+
+                              {item?.note && (
+                                <p>{item.note}</p>
+                              )}
+
+                            </div>
+
+                          </div>
+                        )
+                      )}
+
+                    </div>
+
+
+                    {dayStay && (
+                      <div className="mtp-stay-strip">
+                        <span>
+                          <Hotel size={18}/>
+                        </span>
+
+                        <div>
+                          <small>STAY</small>
+                          <strong>{dayStay}</strong>
+                        </div>
+                      </div>
+                    )}
+
+                  </article>
+                );
+              }
+            )}
+
+          </div>
+
         </section>
       )}
 
-      <div className="result-actions persistent-result-actions">
 
-        <button className="back-btn" onClick={onEdit}><ArrowLeft size={17}/> Edit</button>
-        <button className="action-btn" onClick={onRegenerate} disabled={generating}>
-          {generating?<LoaderCircle className="spin" size={17}/>:<RotateCcw size={17}/>} Replan
-        </button>
-        <button className="action-btn" onClick={copy}><Copy size={17}/> Copy</button>
-        <button className="action-btn whatsapp" onClick={whatsapp}><Share2 size={17}/> WhatsApp</button>
-        <button className="action-btn" onClick={()=>window.print()}><Printer size={17}/> PDF</button>
-        <button className="save-btn" onClick={onSave}><Save size={17}/> {saveState || "Save trip"}</button>
-          
-      </div>
-      <div className="report-pager">
+      {reportStep===2 && (
+        <section className="mtp-page mtp-around-page">
+
+          <div className="mtp-around-hero">
+
+            <div>
+              <span className="mtp-kicker">
+                AROUND YOUR TRIP
+              </span>
+
+              <h2>
+                Useful places around {finalDestination}
+              </h2>
+
+              <p>
+                Find stay, food, pilgrimage places and
+                attractions only when you need them.
+              </p>
+            </div>
+
+            <span className="mtp-around-icon">
+              <MapPinned size={25}/>
+            </span>
+
+          </div>
+
+
+          {Array.isArray(
+            discoveryContext?.usefulCategories
+          ) &&
+          discoveryContext.usefulCategories.length>0 && (
+            <div className="mtp-discovery-hints">
+
+              {discoveryContext.usefulCategories.map(
+                (category:string,index:number)=>(
+                  <span key={index}>
+                    {titleCase(
+                      category.replace("_"," ")
+                    )}
+                  </span>
+                )
+              )}
+
+            </div>
+          )}
+
+
+          <div className="mtp-places-panel">
+            <NearbySuggestions
+              initialLocation={
+                discoveryContext?.referenceLocation ||
+                finalDestination
+              }
+              purpose={trip.purpose}
+            />
+          </div>
+
+
+          {(confirmations.length>0 ||
+            planWarnings.length>0) && (
+            <section className="mtp-confirm-panel">
+
+              <div className="mtp-section-heading compact">
+                <div>
+                  <span className="mtp-kicker">
+                    BEFORE YOU GO
+                  </span>
+                  <h3>Only the things worth confirming</h3>
+                </div>
+              </div>
+
+              <div className="mtp-confirm-list">
+
+                {confirmations.map(
+                  (item:string,index:number)=>(
+                    <div
+                      className="mtp-confirm-item"
+                      key={`c-${index}`}
+                    >
+                      <span className="info">
+                        <Check size={15}/>
+                      </span>
+                      <p>{item}</p>
+                    </div>
+                  )
+                )}
+
+                {planWarnings.map(
+                  (item:string,index:number)=>(
+                    <div
+                      className="mtp-confirm-item warning"
+                      key={`w-${index}`}
+                    >
+                      <span>
+                        <CircleAlert size={15}/>
+                      </span>
+                      <p>{item}</p>
+                    </div>
+                  )
+                )}
+
+              </div>
+
+            </section>
+          )}
+
+        </section>
+      )}
+
+
+      <footer className="mtp-report-actions">
+
         <button
-          type="button"
-          className="report-pager-btn secondary"
-          onClick={previousReportStep}
-          disabled={reportStep===0}
+          className="mtp-action secondary"
+          onClick={onEdit}
         >
-          <ArrowLeft size={16}/>
-          Previous
+          <ArrowLeft size={17}/>
+          Edit
         </button>
 
-        <div className="report-position">
-          <strong>{reportStep+1}</strong>
-          <span>of {reportSteps.length}</span>
-        </div>
+        <button
+          className="mtp-action secondary"
+          onClick={onRegenerate}
+          disabled={generating}
+        >
+          {generating
+            ? <LoaderCircle
+                className="spin"
+                size={17}
+              />
+            : <RotateCcw size={17}/>}
+          Replan
+        </button>
 
-        {reportStep < reportSteps.length-1 ? (
-          <button
-            type="button"
-            className="report-pager-btn primary"
-            onClick={nextReportStep}
-          >
-            Next →
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="report-pager-btn primary"
-            onClick={()=>setReportStep(0)}
-          >
-            <RotateCcw size={16}/>
-            Overview
-          </button>
-        )}
-      </div>
+        <button
+          className="mtp-action secondary"
+          onClick={copy}
+        >
+          <Copy size={17}/>
+          Copy
+        </button>
+
+        <button
+          className="mtp-action whatsapp"
+          onClick={whatsapp}
+        >
+          <Share2 size={17}/>
+          WhatsApp
+        </button>
+
+        <button
+          className="mtp-action secondary"
+          onClick={()=>window.print()}
+        >
+          <Printer size={17}/>
+          PDF
+        </button>
+
+        <button
+          className="mtp-action primary"
+          onClick={onSave}
+        >
+          <Save size={17}/>
+          {saveState || "Save trip"}
+        </button>
+
+      </footer>
+
     </section>
-  )
+  );
 }
-
 function NearbySuggestions({
   initialLocation,
   purpose
@@ -2004,6 +2319,9 @@ function buildShareText(trip:TripState,plan:any,routeData:any[]){
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(<App/>);
+
+
+
 
 
 

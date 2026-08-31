@@ -1,5 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
+import {
+  buildTravelPlannerPrompt,
+  PLANNER_PROMPT_VERSION,
+  SYSTEM_INSTRUCTION,
+} from "./planner-prompt.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -204,6 +209,45 @@ function extractResponseText(data: any): string {
   return chunks.join("\n");
 }
 
+
+function parseAiJson(text: string) {
+  if (!text || typeof text !== "string") return null;
+
+  let cleaned = text.trim();
+
+  cleaned = cleaned
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (_) {
+    // Try object extraction.
+  }
+
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace = cleaned.lastIndexOf("}");
+
+  if (
+    firstBrace >= 0 &&
+    lastBrace > firstBrace
+  ) {
+    try {
+      return JSON.parse(
+        cleaned.slice(firstBrace, lastBrace + 1),
+      );
+    } catch (error) {
+      console.error(
+        "AI JSON extraction failed",
+        error,
+      );
+    }
+  }
+
+  return null;
+}
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
@@ -230,43 +274,55 @@ Deno.serve(async (req: Request) => {
     const useAi = Boolean(openAiKey) && (input.forceAi === true || complexity >= 3);
     if (!useAi) return jsonResponse({ source: "rules", aiUsed: false, routeData: legs, rules, recommendation, costEstimate: costs, plan: null });
     const visitMinutes = input.visitMinutes?.length ? input.visitMinutes : input.destinations.map(() => 120);
-    const prompt = {
-      task: "Turn verified route facts and traveller constraints into a concise premium India travel recommendation and itinerary. Output strict JSON only.",
-      trip: { ...input, visitMinutes }, verifiedRoadData: legs, deterministicRules: rules, deterministicRecommendation: recommendation,
-      constraints: [
-        "Use Google road distance/duration only where basis=road.",
-        "Do not invent exact train numbers, flight numbers, schedules, fares, seat availability, temple opening hours, hotel names or restaurant names.",
-        "For train/flight/mixed, you may recommend a mode pattern such as Train + Cab or Flight + Cab, but mark schedule-dependent details as confirmation-required.",
-        "Explicitly judge whether traveller count fits a normal car; include luggage practicality.",
-        "Trip purpose must materially affect the recommendation. Pilgrimage should protect energy for freshening, darshan, queues and possible late-arrival stay.",
-        "For family/senior travel, use realistic buffers rather than raw map time.",
-        "If a long road journey is impractical in one day, say so and recommend overnight rest.",
-        "Do not repeat form fields as prose. Add decisions, reasons, warnings and useful sequencing.",
-        "Keep answer compact. No generic filler."
-      ],
-      responseShape: {
-        title: "string",
-        recommendation: { modeLabel: "string", headline: "string", why: ["string"], travellerFit: "string", arrivalStrategy: "string|null", confidence: "high|medium|planning" },
-        journeyFlow: [{ icon: "home|car|train|flight|cab|stay|visit|meal|rest", label: "string", note: "string" }],
-        summary: { days: "number", route: "string", travellerNote: "string", comfort: "string", notes: ["string"] },
-        days: [{ day: "number", date: "string|null", title: "string", load: "light|balanced|busy", items: [{ time: "string", endTime: "string|null", type: "travel|meal|rest|visit|ready|stay|note", title: "string", durationMinutes: "number|null", note: "string" }], stay: "string|null", warnings: ["string"] }],
-        warnings: ["string"]
-      }
-    };
+    const prompt = buildTravelPlannerPrompt({
+      input,
+      visitMinutes,
+      legs,
+      facts,
+      rules,
+      recommendation,
+    });
+
     const aiResponse = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: { "Authorization": `Bearer ${openAiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "gpt-5.6-luna", reasoning: { effort: "low" }, input: [{ role: "system", content: "You are MyTravelPlanner's travel recommendation engine. Make practical decisions from supplied facts. Output valid JSON only, no markdown." }, { role: "user", content: JSON.stringify(prompt) }], max_output_tokens: 1300 })
+      body: JSON.stringify({ model: "gpt-5.6-luna", reasoning: { effort: "low" }, input: [{ role: "system", content: SYSTEM_INSTRUCTION }, { role: "user", content: JSON.stringify(prompt) }], max_output_tokens: 2600 })
     });
     if (!aiResponse.ok) {
       console.error("AI optimiser failed", aiResponse.status, await aiResponse.text());
       return jsonResponse({ source: "rules", aiUsed: false, warning: "AI optimiser unavailable; deterministic recommendation and verified route facts are still available.", routeData: legs, rules, recommendation, costEstimate: costs, plan: null });
     }
     const aiData = await aiResponse.json();
-    const text = extractResponseText(aiData).trim();
-    let plan: any = null;
-    try { plan = JSON.parse(text); } catch (error) { console.error("AI JSON parse failed", error, text.slice(0, 300)); }
-    return jsonResponse({ source: plan ? "ai" : "rules", aiUsed: Boolean(plan), routeData: legs, rules, recommendation, costEstimate: costs, plan });
+
+    const text = extractResponseText(aiData);
+    const plan = parseAiJson(text);
+
+    const aiDebug = {
+      promptVersion: PLANNER_PROMPT_VERSION,
+      httpStatus: aiResponse.status,
+      parsed: Boolean(plan),
+      responseTextLength: text.length,
+      outputStatus: aiData?.status ?? null,
+      incompleteReason:
+        aiData?.incomplete_details?.reason ?? null,
+      apiError:
+        aiData?.error?.message ?? null,
+    };
+
+    console.log(
+      "MyTravelPlanner AI",
+      JSON.stringify(aiDebug),
+    );
+    return jsonResponse({
+      source: plan ? "ai" : "rules",
+      aiUsed: Boolean(plan),
+      routeData: legs,
+      rules,
+      recommendation,
+      costEstimate: costs,
+      plan,
+      aiDebug,
+    });
   } catch (error) {
     console.error("generate-trip error", error);
     return jsonResponse({ error: error instanceof Error ? error.message : "Unexpected error" }, 500);
