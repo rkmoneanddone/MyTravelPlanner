@@ -863,6 +863,58 @@ function Result({
 }) {
   const [reportStep,setReportStep]=React.useState(0);
 
+  const planningMessages = [
+    {
+      title:"Reading your trip",
+      detail:"Understanding your route, travellers, purpose and comfort."
+    },
+    {
+      title:"Route and distance ready",
+      detail:"Using the available route facts to understand the journey."
+    },
+    {
+      title:"Considering your travellers",
+      detail:"Adjusting the plan for group size, children, seniors and luggage."
+    },
+    {
+      title:"Comparing practical options",
+      detail:"Checking which travel arrangement makes the most sense."
+    },
+    {
+      title:"Planning comfort",
+      detail:"Adding sensible breaks, meals, arrival buffer and stay needs."
+    },
+    {
+      title:"Curating the best journey",
+      detail:"Combining route facts and traveller needs into your trip strategy."
+    },
+    {
+      title:"Preparing your full plan",
+      detail:"Building the detailed day-by-day itinerary now."
+    }
+  ];
+
+  const [planningMessageIndex,setPlanningMessageIndex] =
+    React.useState(0);
+
+  React.useEffect(()=>{
+    if(!generating){
+      setPlanningMessageIndex(0);
+      return;
+    }
+
+    const timer=window.setInterval(()=>{
+      setPlanningMessageIndex(current=>
+        Math.min(
+          current+1,
+          planningMessages.length-1
+        )
+      );
+    },1800);
+
+    return ()=>window.clearInterval(timer);
+  },[generating]);
+
   const totalPeople =
     trip.adults +
     trip.children0to5 +
@@ -1021,6 +1073,40 @@ function Result({
       ? aiMoments.slice(0,6)
       : fallbackMoments;
 
+  const departureMoment =
+    keyMoments.find(
+      (item:any)=>
+        item?.type==="travel" ||
+        item?.type==="ready"
+    ) || null;
+
+  const arrivalMoment =
+    keyMoments.find(
+      (item:any)=>item?.type==="arrival"
+    ) || null;
+
+  const broadDeparture =
+    departureMoment?.time ||
+    trip.startTime ||
+    "Early start";
+
+  const broadArrival =
+    arrivalMoment?.time ||
+    "Same day";
+
+  const broadStayText =
+    stayAdvice?.recommended
+      ? `Stay near ${stayAdvice?.location || finalDestination}`
+      : "No overnight halt needed";
+
+  const broadVisitText =
+    visitStrategy ||
+    (
+      trip.purpose==="pilgrimage"
+        ? "Protect enough time and energy for the visit"
+        : "Keep arrival light and flexible"
+    );
+
   const reportSteps = [
     {
       label:"Best Journey",
@@ -1147,13 +1233,58 @@ function Result({
 
               <h2>Planning your trip</h2>
 
-              <p>
-                Reviewing route, travellers, breaks,
-                stay and visit timing.
-              </p>
+              <div
+                className="mtp-planning-live-copy"
+                key={planningMessageIndex}
+              >
+                <strong>
+                  {planningMessages[planningMessageIndex]?.title}
+                </strong>
 
-              <small>
-                Please wait a few seconds...
+                <p>
+                  {planningMessages[planningMessageIndex]?.detail}
+                </p>
+              </div>
+
+              <div className="mtp-planning-checks">
+
+                {planningMessages.map((item,index)=>(
+                  <span
+                    key={item.title}
+                    className={
+                      index < planningMessageIndex
+                        ? "done"
+                        : index === planningMessageIndex
+                          ? "active"
+                          : ""
+                    }
+                  >
+                    {index < planningMessageIndex
+                      ? <Check size={13}/>
+                      : index === planningMessageIndex
+                        ? <LoaderCircle className="spin" size={13}/>
+                        : <span className="mtp-planning-empty-dot"/>
+                    }
+                  </span>
+                ))}
+
+              </div>
+
+              <div className="mtp-planning-progress">
+                <span
+                  style={{
+                    width:
+                      `${Math.max(
+                        10,
+                        ((planningMessageIndex+1) /
+                          planningMessages.length) * 100
+                      )}%`
+                  }}
+                />
+              </div>
+
+              <small className="mtp-planning-patience">
+                A good travel plan takes a few seconds.
               </small>
             </div>
 
@@ -1200,31 +1331,76 @@ function Result({
       </header>
 
 
-      <nav
-        className="mtp-report-tabs"
-        aria-label="Travel report sections"
-      >
-        {reportSteps.map((item,index)=>(
-          <button
-            key={item.label}
-            type="button"
-            className={
-              reportStep===index
-                ? `active ${item.tone}`
-                : item.tone
-            }
-            onClick={()=>setReportStep(index)}
-          >
-            <span className="mtp-tab-icon">
-              {item.icon}
-            </span>
+            <nav className="mtp-report-tabs mtp-v10-steps">
 
-            <span>
-              <strong>{item.label}</strong>
-              <small>{item.caption}</small>
-            </span>
-          </button>
-        ))}
+        <button
+          type="button"
+          className={`mtp-v10-step green ${reportStep===0 ? "active" : ""}`}
+          onClick={()=>setReportStep(0)}
+        >
+          <span className="mtp-v10-step-number">1</span>
+
+          <span className="mtp-v10-step-icon">
+            <MapPinned size={20}/>
+          </span>
+
+          <span className="mtp-v10-step-copy">
+            <strong>Best Journey</strong>
+            <small>Trip snapshot</small>
+          </span>
+
+          <ArrowRight
+            size={18}
+            className="mtp-v10-step-arrow"
+          />
+        </button>
+
+
+        <button
+          type="button"
+          className={`mtp-v10-step blue ${reportStep===1 ? "active" : ""}`}
+          onClick={()=>setReportStep(1)}
+        >
+          <span className="mtp-v10-step-number">2</span>
+
+          <span className="mtp-v10-step-icon">
+            <CalendarDays size={20}/>
+          </span>
+
+          <span className="mtp-v10-step-copy">
+            <strong>Full Plan</strong>
+            <small>Day-by-day itinerary</small>
+          </span>
+
+          <ArrowRight
+            size={18}
+            className="mtp-v10-step-arrow"
+          />
+        </button>
+
+
+        <button
+          type="button"
+          className={`mtp-v10-step orange ${reportStep===2 ? "active" : ""}`}
+          onClick={()=>setReportStep(2)}
+        >
+          <span className="mtp-v10-step-number">3</span>
+
+          <span className="mtp-v10-step-icon">
+            <Sparkles size={20}/>
+          </span>
+
+          <span className="mtp-v10-step-copy">
+            <strong>Around Your Trip</strong>
+            <small>Stay, eat and visit</small>
+          </span>
+
+          <ArrowRight
+            size={18}
+            className="mtp-v10-step-arrow"
+          />
+        </button>
+
       </nav>
 
 
@@ -1236,211 +1412,327 @@ function Result({
       )}
 
 
-      {reportStep===0 && (
-        <section className="mtp-page mtp-snapshot-page">
+                  {reportStep===0 && (
+        <section className="mtp-page mtp-snapshot-page mtp-v10-page">
 
-          <div className="mtp-snapshot-hero">
+          <section className="mtp-v10-hero">
 
-            <div className="mtp-snapshot-icon">
-              {trip.mode==="flight"
-                ? <Plane size={26}/>
-                : trip.mode==="train"
-                  ? <Train size={26}/>
-                  : <Car size={26}/>}
-            </div>
+            <div className="mtp-v10-hero-main">
 
-            <div className="mtp-snapshot-main">
-              <span className="mtp-kicker">
-                BEST FOR YOUR TRIP
+              <span className="mtp-v10-eyebrow">
+                RECOMMENDED JOURNEY
               </span>
 
-              <h1>{recommendedMode}</h1>
+              <h1>{headline}</h1>
 
-              <p>{headline}</p>
-            </div>
+              <p className="mtp-v10-hero-sub">
+                {shortReason ||
+                  "A practical journey shaped around your travellers, comfort and route."}
+              </p>
 
-            {source==="ai" && (
-              <span className="mtp-ai-chip">
-                <Sparkles size={14}/>
-                Smart plan
-              </span>
-            )}
+              <div className="mtp-v10-hero-actions">
 
-          </div>
+                <span className="mtp-v10-mode-pill">
+                  {trip.mode==="flight"
+                    ? <Plane size={16}/>
+                    : trip.mode==="train"
+                      ? <Train size={16}/>
+                      : <Car size={16}/>}
 
-
-          <div className="mtp-fact-grid">
-
-            {roadDistance && (
-              <article className="mtp-fact-card blue">
-                <span className="mtp-fact-icon">
-                  <Route size={19}/>
+                  {recommendedMode}
                 </span>
-                <small>DISTANCE</small>
-                <strong>{roadDistance}</strong>
-              </article>
-            )}
 
-            {rawTravelTime && (
-              <article className="mtp-fact-card teal">
-                <span className="mtp-fact-icon">
+                {source==="ai" && (
+                  <span className="mtp-v10-smart-pill">
+                    <Sparkles size={15}/>
+                    Smart plan
+                  </span>
+                )}
+
+                <button
+                  type="button"
+                  className="mtp-v10-view-plan"
+                  onClick={()=>setReportStep(1)}
+                >
+                  View full plan
+                  <ArrowRight size={16}/>
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <div className="mtp-v10-hero-mark">
+              {trip.mode==="flight"
+                ? <Plane size={34}/>
+                : trip.mode==="train"
+                  ? <Train size={34}/>
+                  : <MapPinned size={34}/>}
+            </div>
+
+          </section>
+
+
+          <section className="mtp-v10-facts">
+
+            <article>
+              <span className="blue">
+                <Route size={18}/>
+              </span>
+
+              <div>
+                <small>Distance</small>
+                <strong>{roadDistance || "Route based"}</strong>
+              </div>
+            </article>
+
+
+            <article>
+              <span className="teal">
+                <Clock3 size={18}/>
+              </span>
+
+              <div>
+                <small>Travel reference</small>
+                <strong>{rawTravelTime || "Plan based"}</strong>
+              </div>
+            </article>
+
+
+            <article>
+              <span className="green">
+                <HeartHandshake size={18}/>
+              </span>
+
+              <div>
+                <small>Practical journey</small>
+                <strong>{practicalTravelTime}</strong>
+              </div>
+            </article>
+
+
+            <article>
+              <span className="purple">
+                <Hotel size={18}/>
+              </span>
+
+              <div>
+                <small>Stay</small>
+                <strong>
+                  {stayAdvice?.recommended
+                    ? "Recommended"
+                    : "Not needed"}
+                </strong>
+              </div>
+            </article>
+
+          </section>
+
+
+          <section className="mtp-v10-story">
+
+            <header>
+              <div>
+                <span className="mtp-v10-eyebrow">
+                  THE BIG PICTURE
+                </span>
+
+                <h2>How this trip should work</h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={()=>setReportStep(1)}
+              >
+                Detailed timings on Full Plan
+                <ArrowRight size={15}/>
+              </button>
+            </header>
+
+
+            <div className="mtp-v10-story-track">
+
+              <article className="mint">
+                <span>
                   <Clock3 size={19}/>
                 </span>
-                <small>RAW TRAVEL</small>
-                <strong>{rawTravelTime}</strong>
+
+                <small>START</small>
+
+                <strong>{broadDeparture}</strong>
+
+                <p>
+                  {departureMoment?.label ||
+                    `Start from ${trip.origin}`}
+                </p>
               </article>
-            )}
-
-            <article className="mtp-fact-card green">
-              <span className="mtp-fact-icon">
-                <HeartHandshake size={19}/>
-              </span>
-              <small>PRACTICAL TIME</small>
-              <strong>{practicalTravelTime}</strong>
-            </article>
-
-            <article className="mtp-fact-card purple">
-              <span className="mtp-fact-icon">
-                <Hotel size={19}/>
-              </span>
-              <small>STAY</small>
-              <strong>
-                {stayAdvice?.recommended
-                  ? stayAdvice?.location || "Recommended"
-                  : "Not essential"}
-              </strong>
-            </article>
-
-          </div>
 
 
-          <section className="mtp-trip-picture">
+              <div className="mtp-v10-connector"/>
 
-            <div className="mtp-section-heading">
-              <div>
-                <span className="mtp-kicker">
-                  YOUR TRIP PICTURE
+
+              <article className="blue">
+                <span>
+                  <MapPin size={19}/>
                 </span>
-                <h2>The journey at a glance</h2>
-              </div>
-            </div>
 
-            <div className="mtp-moment-track">
+                <small>ARRIVAL</small>
 
-              {keyMoments.map(
-                (moment:any,index:number)=>(
-                  <article
-                    className="mtp-moment"
-                    key={index}
-                  >
-                    <span
-                      className={
-                        `mtp-moment-icon ${itemTone(moment?.type)}`
-                      }
-                    >
-                      {itemIcon(moment?.type)}
-                    </span>
+                <strong>{broadArrival}</strong>
 
-                    <div>
-                      <small>{moment?.time || ""}</small>
-                      <strong>
-                        {moment?.label || "Trip step"}
-                      </strong>
+                <p>
+                  {arrivalMoment?.label ||
+                    `Reach ${finalDestination}`}
+                </p>
+              </article>
 
-                      {moment?.note && (
-                        <span>{moment.note}</span>
-                      )}
-                    </div>
-                  </article>
-                )
-              )}
+
+              <div className="mtp-v10-connector"/>
+
+
+              <article className="lavender">
+                <span>
+                  <Hotel size={19}/>
+                </span>
+
+                <small>STAY PLAN</small>
+
+                <strong>{broadStayText}</strong>
+
+                <p>
+                  {stayAdvice?.reason ||
+                    "Keep the arrival comfortable and unhurried."}
+                </p>
+              </article>
+
+
+              <div className="mtp-v10-connector"/>
+
+
+              <article className="peach">
+                <span>
+                  <Sparkles size={19}/>
+                </span>
+
+                <small>ARRIVAL / VISIT</small>
+
+                <strong>{broadVisitText}</strong>
+              </article>
 
             </div>
 
           </section>
 
 
-          <div className="mtp-snapshot-bottom">
+          <section className="mtp-v10-support">
 
-            {visitStrategy && (
-              <article className="mtp-highlight-card teal">
-                <span>
-                  <MapPinned size={20}/>
-                </span>
+            <article className="mtp-v10-why">
 
-                <div>
-                  <small>VISIT STRATEGY</small>
-                  <strong>{visitStrategy}</strong>
-                </div>
-              </article>
-            )}
+              <span className="mtp-v10-support-icon">
+                <Check size={19}/>
+              </span>
 
-            {stayAdvice?.recommended && (
-              <article className="mtp-highlight-card purple">
-                <span>
-                  <Hotel size={20}/>
-                </span>
+              <div>
+                <small>WHY THIS PLAN FITS</small>
 
-                <div>
-                  <small>OVERNIGHT PLAN</small>
-                  <strong>
-                    {stayAdvice.location || finalDestination}
-                  </strong>
+                <strong>
+                  {shortReason ||
+                    "Designed around the route, traveller count and comfort selected for this trip."}
+                </strong>
+              </div>
 
-                  {stayAdvice.reason && (
-                    <p>{stayAdvice.reason}</p>
-                  )}
-                </div>
-              </article>
-            )}
+            </article>
 
-            {shortReason && (
-              <article className="mtp-highlight-card green">
-                <span>
-                  <Check size={20}/>
-                </span>
 
-                <div>
-                  <small>WHY THIS PLAN</small>
-                  <strong>{shortReason}</strong>
-                </div>
-              </article>
-            )}
+            <article className="mtp-v10-arrangement">
 
-          </div>
+              <span className="mtp-v10-support-icon">
+                {trip.mode==="flight"
+                  ? <Plane size={19}/>
+                  : trip.mode==="train"
+                    ? <Train size={19}/>
+                    : <Car size={19}/>}
+              </span>
+
+              <div>
+                <small>TRAVEL ARRANGEMENT</small>
+                <strong>{recommendedMode}</strong>
+              </div>
+
+            </article>
+
+          </section>
 
 
           {modeComparison.length>0 && (
-            <section className="mtp-mode-strip">
 
-              <span className="mtp-kicker">
-                QUICK COMPARISON
-              </span>
+            <section className="mtp-v10-options">
 
-              <div className="mtp-mode-list">
+              <header>
+                <span className="mtp-v10-eyebrow">
+                  OTHER OPTIONS
+                </span>
+
+                <h2>Quick comparison</h2>
+              </header>
+
+
+              <div className="mtp-v10-option-grid">
+
                 {modeComparison
                   .slice(0,3)
                   .map((mode:any,index:number)=>(
-                    <div
-                      className={
-                        `mtp-mode-item ${mode?.verdict || ""}`
-                      }
+
+                    <article
                       key={index}
+                      className={`mtp-v10-option ${mode?.verdict || ""}`}
                     >
-                      <strong>{mode?.mode}</strong>
-                      <span>{mode?.reason}</span>
-                    </div>
+
+                      <div className="mtp-v10-option-top">
+
+                        <span className="mtp-v10-option-icon">
+                          {String(mode?.mode || "")
+                            .toLowerCase()
+                            .includes("flight")
+                              ? <Plane size={20}/>
+                              : String(mode?.mode || "")
+                                  .toLowerCase()
+                                  .includes("train")
+                                ? <Train size={20}/>
+                                : <Car size={20}/>}
+                        </span>
+
+                        <div>
+                          <strong>{mode?.mode}</strong>
+
+                          <small>
+                            {mode?.verdict
+                              ? titleCase(
+                                  String(mode.verdict)
+                                    .replace("_"," ")
+                                )
+                              : ""}
+                          </small>
+                        </div>
+
+                      </div>
+
+                      <p>{mode?.reason}</p>
+
+                    </article>
+
                   ))}
+
               </div>
 
             </section>
+
           )}
 
         </section>
       )}
-
-
-      {reportStep===1 && (
+{reportStep===1 && (
         <section className="mtp-page mtp-itinerary-page">
 
           <div className="mtp-section-heading">
@@ -1697,6 +1989,43 @@ function Result({
         </section>
       )}
 
+
+      <div className="mtp-page-navigation">
+
+        <button
+          type="button"
+          className="mtp-page-nav-btn"
+          disabled={reportStep===0}
+          onClick={()=>
+            setReportStep(current=>
+              Math.max(0,current-1)
+            )
+          }
+        >
+          <ArrowLeft size={17}/>
+          Previous
+        </button>
+
+        <div className="mtp-page-position">
+          <strong>{reportStep+1}</strong>
+          <span>of 3</span>
+        </div>
+
+        <button
+          type="button"
+          className="mtp-page-nav-btn primary"
+          disabled={reportStep===2}
+          onClick={()=>
+            setReportStep(current=>
+              Math.min(2,current+1)
+            )
+          }
+        >
+          Next
+          <ArrowRight size={17}/>
+        </button>
+
+      </div>
 
       <footer className="mtp-report-actions">
 
