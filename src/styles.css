@@ -7588,3 +7588,4547 @@ input[type="search"]:focus-visible{
     margin:0 12px 16px;
   }
 }
+
+
+/* MTP PREMIUM TRAVEL THEME V6 CLEAN */
+
+/*
+  Single clean visual layer.
+  Prior premium theme overrides were removed to avoid conflicting CSS.
+*/
+
+/* -------- CINEMATIC PAGE BACKGROUND -------- */
+
+html{
+  min-height:100%;
+  background:#082f2d;
+}
+
+body{
+  min-height:100vh;
+  color:#17251f;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(103,43,13,.40) 0%,
+      rgba(114,56,18,.28) 24%,
+      rgba(18,69,61,.20) 56%,
+      rgba(0,86,82,.42) 100%
+    ),
+    url("/mtp-travel-bg-v2.jpg") center 18% / cover fixed no-repeat !important;
+}
+
+/* Stronger saturation/contrast WITHOUT affecting child content */
+.app{
+  min-height:100vh;
+  background:transparent !important;
+  backdrop-filter:saturate(175%) contrast(108%) brightness(88%);
+  -webkit-backdrop-filter:saturate(175%) contrast(108%) brightness(88%);
+}
+
+/* extra orange + teal depth */
+.app::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(122,48,12,.28) 0%,
+      rgba(93,45,17,.12) 33%,
+      rgba(0,84,78,.14) 62%,
+      rgba(0,94,89,.34) 100%
+    );
+}
+
+/* -------- HEADER -------- */
+
+.topbar{
+  height:66px !important;
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+  position:sticky;
+  top:0;
+  z-index:50;
+}
+
+.header-inner{
+  width:min(86%,1500px) !important;
+}
+
+.brand{
+  color:#fff !important;
+  font-size:18px !important;
+  font-weight:600 !important;
+  text-decoration:none !important;
+  text-shadow:0 2px 12px rgba(0,0,0,.48);
+}
+
+.brand-button{
+  text-decoration:none !important;
+}
+
+.brand-icon{
+  width:38px !important;
+  height:38px !important;
+  border-radius:11px !important;
+  background:linear-gradient(135deg,#00a99d,#17c2ae) !important;
+  color:#fff !important;
+  box-shadow:0 8px 20px rgba(0,0,0,.18) !important;
+}
+
+/* NO boxed My Trips / username / logout */
+.header-actions{
+  gap:12px !important;
+}
+
+.header-btn,
+.header-icon-btn{
+  height:38px !important;
+  padding:0 4px !important;
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  color:#fff !important;
+  font-weight:500 !important;
+  text-shadow:0 2px 9px rgba(0,0,0,.42);
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+
+.header-icon-btn{
+  width:28px !important;
+}
+
+.header-btn:hover,
+.header-icon-btn:hover{
+  color:#ffb21a !important;
+  background:transparent !important;
+}
+
+/* -------- HERO STRIP -------- */
+
+.main{
+  padding-top:16px !important;
+  padding-bottom:48px !important;
+}
+
+.hero-strip{
+  background:
+    linear-gradient(
+      100deg,
+      rgba(117,49,15,.86) 0%,
+      rgba(89,53,27,.72) 40%,
+      rgba(0,111,101,.80) 100%
+    ) !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+  border-radius:16px !important;
+  box-shadow:0 18px 42px rgba(0,0,0,.25) !important;
+  backdrop-filter:blur(8px) saturate(120%) !important;
+  -webkit-backdrop-filter:blur(8px) saturate(120%) !important;
+}
+
+.hero-icon{
+  background:#f6a008 !important;
+  color:#fff !important;
+  box-shadow:0 9px 22px rgba(246,160,8,.30) !important;
+}
+
+.eyebrow{
+  color:#76eddb !important;
+  font-weight:600 !important;
+}
+
+.hero-copy h1{
+  color:#fff !important;
+  font-weight:500 !important;
+  letter-spacing:-.015em !important;
+  text-shadow:0 2px 10px rgba(0,0,0,.20);
+}
+
+.hero-copy p{
+  color:#fff7ef !important;
+  font-weight:400 !important;
+}
+
+.hero-badges span{
+  color:#fff !important;
+  background:rgba(255,255,255,.08) !important;
+  border:1px solid rgba(255,255,255,.26) !important;
+  font-weight:500 !important;
+  backdrop-filter:blur(8px) !important;
+}
+
+/* -------- STEP NAV -------- */
+
+.step-bar{
+  gap:9px !important;
+}
+
+.step-item{
+  min-height:48px !important;
+  border-radius:13px !important;
+  border:1px solid rgba(255,255,255,.28) !important;
+  background:rgba(31,35,33,.62) !important;
+  color:#fff !important;
+  box-shadow:0 10px 24px rgba(0,0,0,.18) !important;
+  backdrop-filter:blur(8px) !important;
+  -webkit-backdrop-filter:blur(8px) !important;
+  text-shadow:0 1px 5px rgba(0,0,0,.25);
+}
+
+.step-item:nth-child(2){
+  background:rgba(70,48,37,.66) !important;
+}
+
+.step-item:nth-child(3){
+  background:rgba(27,79,70,.68) !important;
+}
+
+.step-item:nth-child(4){
+  background:rgba(40,66,60,.68) !important;
+}
+
+.step-item.active{
+  background:linear-gradient(135deg,#009d92,#12b8a7) !important;
+  border-color:#6de6da !important;
+  color:#fff !important;
+}
+
+.step-item.done{
+  color:#fff !important;
+}
+
+.step-icon,
+.step-item.active .step-icon{
+  background:rgba(255,255,255,.13) !important;
+  color:#fff !important;
+}
+
+/* -------- MAIN PLANNER: NO PALE SLAB -------- */
+
+.planner-card,
+.theme-route,
+.theme-travellers,
+.theme-comfort,
+.theme-review{
+  background:rgba(11,44,39,.28) !important;
+  border:1px solid rgba(255,255,255,.30) !important;
+  border-radius:18px !important;
+  box-shadow:0 24px 58px rgba(0,0,0,.24) !important;
+  backdrop-filter:blur(10px) saturate(125%) !important;
+  -webkit-backdrop-filter:blur(10px) saturate(125%) !important;
+}
+
+.planner-card:before{
+  height:3px !important;
+  background:linear-gradient(90deg,#00aaa0 0%,#12b9a8 52%,#f5a10a 100%) !important;
+}
+
+/* Plan your route must NOT look like From / To */
+.step-heading{
+  margin:0 0 14px !important;
+  padding:13px 15px !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+  border-radius:13px !important;
+  background:
+    linear-gradient(
+      100deg,
+      rgba(112,48,16,.92) 0%,
+      rgba(82,57,31,.86) 43%,
+      rgba(0,112,102,.90) 100%
+    ) !important;
+  box-shadow:0 10px 24px rgba(0,0,0,.14) !important;
+}
+
+.step-heading h2{
+  color:#fff !important;
+  font-weight:500 !important;
+  letter-spacing:-.01em !important;
+}
+
+.step-heading p{
+  color:#f4eee7 !important;
+  font-weight:400 !important;
+}
+
+.step-bubble{
+  background:#f5a10a !important;
+  color:#fff !important;
+  box-shadow:none !important;
+}
+
+/* OUTSIDE-CARD LABELS MUST BE CLEAR */
+.planner-card .group-label{
+  color:#fff !important;
+  font-size:14px !important;
+  font-weight:600 !important;
+  text-shadow:0 2px 8px rgba(0,0,0,.55);
+}
+
+.planner-card .add-stop{
+  color:#ffcb62 !important;
+  font-size:14px !important;
+  font-weight:700 !important;
+  text-shadow:0 2px 8px rgba(0,0,0,.48);
+}
+
+.planner-card .add-stop:hover{
+  color:#ffe09a !important;
+}
+
+/* Form content cards only are light */
+.field-box{
+  background:rgba(255,250,242,.92) !important;
+  border:1px solid rgba(255,255,255,.46) !important;
+  box-shadow:0 10px 23px rgba(0,0,0,.10) !important;
+}
+
+.field-box:focus-within{
+  border-color:#0ca598 !important;
+  box-shadow:0 0 0 3px rgba(12,165,152,.15),0 10px 23px rgba(0,0,0,.10) !important;
+}
+
+.field-body>span:first-child{
+  color:#42534b !important;
+  font-weight:600 !important;
+}
+
+.field-body input{
+  color:#14251f !important;
+  font-weight:500 !important;
+}
+
+.field-body input::placeholder{
+  color:#65736d !important;
+}
+
+/* Mode / traveller / comfort cards: light but visually distinct */
+.mode-card,
+.traveller-card,
+.comfort-option,
+.review-card{
+  background:rgba(255,248,238,.88) !important;
+  border:1px solid rgba(255,255,255,.42) !important;
+  box-shadow:0 9px 20px rgba(0,0,0,.09) !important;
+}
+
+.mode-card.active,
+.comfort-option.active{
+  background:linear-gradient(135deg,#d9f7f0,#edfdf8) !important;
+  border:2px solid #009d92 !important;
+}
+
+.mode-copy>span,
+.traveller-copy>span,
+.comfort-copy>span,
+.review-card strong{
+  color:#14251f !important;
+  font-weight:600 !important;
+}
+
+.mode-copy small,
+.traveller-copy small,
+.comfort-copy small,
+.review-card small{
+  color:#485850 !important;
+  font-weight:500 !important;
+}
+
+.select-mark{
+  border-color:#8b9992 !important;
+}
+
+.mode-card.active .select-mark,
+.comfort-option.active .select-mark{
+  background:#ccefe6 !important;
+  color:#007a70 !important;
+}
+
+.color-icon.blue,
+.color-icon.green,
+.color-icon.purple,
+.color-icon.rose,
+.color-icon.orange,
+.color-icon.amber{
+  background:#d8f3ec !important;
+  color:#087b6f !important;
+}
+
+/* Other helper surfaces */
+.date-help,
+.notice{
+  background:rgba(255,239,205,.92) !important;
+  border:1px solid rgba(245,161,10,.38) !important;
+  color:#66470e !important;
+  box-shadow:0 8px 18px rgba(0,0,0,.07) !important;
+}
+
+.date-help-icon{
+  background:#ffd98c !important;
+  color:#9b5c00 !important;
+}
+
+.counter{
+  background:#e8f1ed !important;
+}
+
+/* validation chips stay readable */
+.planner-card .field-errors,
+.planner-card .validation-row,
+.planner-card .helper{
+  color:#fff !important;
+  text-shadow:0 1px 6px rgba(0,0,0,.38);
+}
+
+/* -------- STRONG BUTTONS -------- */
+
+.next-btn,
+.generate-btn,
+.save-btn{
+  background:linear-gradient(135deg,#f59a05,#ffae16) !important;
+  color:#fff !important;
+  border:0 !important;
+  border-radius:12px !important;
+  box-shadow:0 12px 27px rgba(245,154,5,.32) !important;
+  font-weight:700 !important;
+}
+
+.next-btn:hover,
+.generate-btn:hover,
+.save-btn:hover{
+  background:linear-gradient(135deg,#ffa100,#ffb625) !important;
+}
+
+.back-btn,
+.action-btn{
+  background:linear-gradient(135deg,#008f85,#0baa9b) !important;
+  color:#fff !important;
+  border:0 !important;
+  border-radius:12px !important;
+  box-shadow:0 10px 22px rgba(0,143,133,.24) !important;
+  font-weight:600 !important;
+}
+
+.back-btn:hover,
+.action-btn:hover{
+  background:linear-gradient(135deg,#007e76,#08988b) !important;
+}
+
+/* -------- RESULTS -------- */
+
+.result-top h1{
+  color:#fff !important;
+  font-weight:500 !important;
+  text-shadow:0 2px 10px rgba(0,0,0,.42);
+}
+
+.result-top p{
+  color:#f6f3ed !important;
+}
+
+.route-leg,
+.day-card,
+.mtp-report-panel,
+.mtp-summary-card,
+.mtp-nearby-card,
+.place-card{
+  background:rgba(255,249,239,.90) !important;
+  border:1px solid rgba(255,255,255,.44) !important;
+  color:#14251f !important;
+  box-shadow:0 16px 38px rgba(0,0,0,.18) !important;
+  backdrop-filter:blur(10px) !important;
+}
+
+/* -------- MODALS + FOOTER -------- */
+
+.auth-card,
+.trips-card,
+.mtp-legal-dialog{
+  background:rgba(255,249,239,.96) !important;
+  color:#14251f !important;
+}
+
+.mtp-site-footer{
+  background:rgba(5,50,47,.72) !important;
+  border-top:1px solid rgba(255,255,255,.12) !important;
+  color:#fff !important;
+  backdrop-filter:blur(12px) !important;
+}
+
+.mtp-footer-brand,
+.mtp-footer-brand p,
+.mtp-footer-note,
+.mtp-footer-copy,
+.mtp-footer-links button{
+  color:#fff !important;
+}
+
+/* -------- RESPONSIVE -------- */
+
+@media(max-width:900px){
+  .header-inner{
+    width:min(94%,1500px) !important;
+  }
+
+  .page-width{
+    width:min(94%,1240px) !important;
+  }
+}
+
+@media(max-width:650px){
+  body{
+    background-attachment:scroll !important;
+    background-position:60% top !important;
+  }
+
+  .app{
+    backdrop-filter:saturate(155%) contrast(106%) brightness(90%);
+    -webkit-backdrop-filter:saturate(155%) contrast(106%) brightness(90%);
+  }
+
+  .topbar{
+    height:58px !important;
+  }
+
+  .planner-card,
+  .theme-route,
+  .theme-travellers,
+  .theme-comfort,
+  .theme-review{
+    background:rgba(9,43,39,.35) !important;
+  }
+
+  .step-heading{
+    padding:12px !important;
+  }
+
+  .field-box,
+  .mode-card,
+  .traveller-card,
+  .comfort-option,
+  .review-card{
+    background:rgba(255,249,239,.94) !important;
+  }
+}
+/* MTP V6 POLISH + PLANNING OVERLAY */
+
+/* 1. Hierarchy: content below each planner section gets breathing room */
+.planner-card .route-stack,
+.planner-card .travel-grid,
+.planner-card .date-grid,
+.planner-card .traveller-grid,
+.planner-card .comfort-grid,
+.planner-card .review-grid,
+.planner-card .notice,
+.planner-card .date-help,
+.planner-card .group-label,
+.planner-card .add-stop,
+.planner-card .footer-actions{
+  margin-left:10px !important;
+  margin-right:10px !important;
+}
+
+/* Keep full-width rows mathematically inside the card after side margins */
+.planner-card .route-stack,
+.planner-card .travel-grid,
+.planner-card .date-grid,
+.planner-card .traveller-grid,
+.planner-card .comfort-grid,
+.planner-card .review-grid{
+  width:calc(100% - 20px) !important;
+}
+
+/* 2. Controls: slightly translucent, but still readable */
+.field-box,
+.mode-card,
+.traveller-card,
+.comfort-option,
+.review-card{
+  background:rgba(255,249,240,.82) !important;
+  border-color:rgba(255,255,255,.34) !important;
+  backdrop-filter:blur(7px) saturate(115%) !important;
+  -webkit-backdrop-filter:blur(7px) saturate(115%) !important;
+}
+
+.field-box:hover,
+.mode-card:hover,
+.traveller-card:hover,
+.comfort-option:hover,
+.review-card:hover{
+  background:rgba(255,249,240,.88) !important;
+}
+
+/* Selected controls retain strong teal identity */
+.mode-card.active,
+.comfort-option.active{
+  background:rgba(215,248,240,.88) !important;
+  border-color:#009d92 !important;
+}
+
+/* 3. Darker typography inside light controls */
+.field-body>span:first-child,
+.mode-copy small,
+.traveller-copy small,
+.comfort-copy small,
+.review-card small{
+  color:#34463e !important;
+}
+
+.field-body input,
+.mode-copy>span,
+.traveller-copy>span,
+.comfort-copy>span,
+.review-card strong{
+  color:#0f1f19 !important;
+}
+
+.field-body input::placeholder{
+  color:#55655e !important;
+  opacity:1 !important;
+}
+
+/* Section labels remain highly visible on the cinematic backdrop */
+.planner-card .group-label{
+  color:#fff !important;
+  font-weight:600 !important;
+  text-shadow:0 2px 8px rgba(0,0,0,.58);
+}
+
+/* Add another stop should NOT be bold */
+.planner-card .add-stop{
+  color:#ffd16b !important;
+  font-weight:400 !important;
+  text-shadow:0 2px 8px rgba(0,0,0,.52);
+}
+
+/* 4. Planning overlay: match the current premium theme */
+.mtp-planning-overlay{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:200 !important;
+  display:flex !important;
+  justify-content:center !important;
+  align-items:flex-start !important;
+  padding:12vh 18px 24px !important;
+  overflow:auto !important;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(66,31,16,.48) 0%,
+      rgba(15,58,53,.50) 100%
+    ) !important;
+  backdrop-filter:blur(12px) saturate(135%) !important;
+  -webkit-backdrop-filter:blur(12px) saturate(135%) !important;
+}
+
+/* Opens above mid-screen instead of low on the viewport */
+.mtp-planning-box{
+  width:min(650px,94vw) !important;
+  margin:0 auto !important;
+  padding:28px 30px !important;
+  border-radius:20px !important;
+  border:1px solid rgba(255,255,255,.24) !important;
+  background:
+    linear-gradient(
+      120deg,
+      rgba(255,249,239,.94) 0%,
+      rgba(246,248,240,.91) 100%
+    ) !important;
+  color:#10251e !important;
+  box-shadow:0 28px 70px rgba(0,0,0,.30) !important;
+  backdrop-filter:blur(16px) saturate(115%) !important;
+  -webkit-backdrop-filter:blur(16px) saturate(115%) !important;
+}
+
+/* Planning icon uses the site's teal */
+.mtp-planning-icon{
+  background:linear-gradient(135deg,#006f66,#0aa093) !important;
+  color:#fff !important;
+  box-shadow:0 10px 24px rgba(0,111,102,.24) !important;
+}
+
+/* Planning typography */
+.mtp-planning-label{
+  color:#16796a !important;
+  font-weight:600 !important;
+  letter-spacing:.08em !important;
+}
+
+.mtp-planning-box h2{
+  color:#10251e !important;
+  font-weight:500 !important;
+}
+
+.mtp-planning-live-copy strong{
+  color:#0b675a !important;
+  font-weight:600 !important;
+}
+
+.mtp-planning-live-copy p,
+.mtp-planning-patience{
+  color:#4c5f56 !important;
+}
+
+/* Progress/checks use the same teal + warm accent language */
+.mtp-planning-checks>span{
+  background:rgba(16,117,102,.10) !important;
+  border-color:rgba(16,117,102,.16) !important;
+  color:#0a7569 !important;
+}
+
+.mtp-planning-checks>span.done,
+.mtp-planning-checks>span.active{
+  background:#0a8c7f !important;
+  color:#fff !important;
+}
+
+.mtp-planning-progress{
+  background:rgba(15,65,55,.12) !important;
+}
+
+.mtp-planning-progress>span{
+  background:linear-gradient(90deg,#009d92,#15b7a5,#f4a10a) !important;
+}
+
+/* Mobile */
+@media(max-width:650px){
+  .planner-card .route-stack,
+  .planner-card .travel-grid,
+  .planner-card .date-grid,
+  .planner-card .traveller-grid,
+  .planner-card .comfort-grid,
+  .planner-card .review-grid,
+  .planner-card .notice,
+  .planner-card .date-help,
+  .planner-card .group-label,
+  .planner-card .add-stop,
+  .planner-card .footer-actions{
+    margin-left:8px !important;
+    margin-right:8px !important;
+  }
+
+  .planner-card .route-stack,
+  .planner-card .travel-grid,
+  .planner-card .date-grid,
+  .planner-card .traveller-grid,
+  .planner-card .comfort-grid,
+  .planner-card .review-grid{
+    width:calc(100% - 16px) !important;
+  }
+
+  .mtp-planning-overlay{
+    padding-top:9vh !important;
+  }
+
+  .mtp-planning-box{
+    padding:22px 20px !important;
+  }
+}
+/* MTP V6 CONTROL REFINEMENT */
+
+/*
+  Remove grey/white control treatment.
+  Use teal-tinted glass compatible with the cinematic UI.
+  Reduce control heights.
+*/
+
+/* Main route/location/date controls */
+.field-box{
+  min-height:56px !important;
+  padding:6px 10px !important;
+  grid-template-columns:34px 1fr !important;
+  gap:8px !important;
+
+  background:rgba(190,223,213,.58) !important;
+  border:1px solid rgba(6,111,99,.30) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    0 7px 16px rgba(0,0,0,.07) !important;
+
+  backdrop-filter:blur(8px) saturate(125%) !important;
+  -webkit-backdrop-filter:blur(8px) saturate(125%) !important;
+}
+
+.field-box:hover{
+  background:rgba(201,230,221,.64) !important;
+  border-color:rgba(0,145,132,.42) !important;
+}
+
+.field-box:focus-within{
+  background:rgba(210,236,228,.70) !important;
+  border-color:#009d92 !important;
+  box-shadow:
+    0 0 0 2px rgba(0,157,146,.10),
+    0 8px 18px rgba(0,0,0,.08) !important;
+}
+
+/* Compact icon blocks */
+.field-box .color-icon{
+  width:32px !important;
+  height:32px !important;
+  border-radius:9px !important;
+}
+
+.color-icon.blue,
+.color-icon.green,
+.color-icon.purple,
+.color-icon.rose,
+.color-icon.orange,
+.color-icon.amber{
+  background:rgba(214,241,233,.72) !important;
+  color:#057a6d !important;
+}
+
+/* Darker text with less visual heaviness */
+.field-body>span:first-child{
+  color:#263c34 !important;
+  font-size:10px !important;
+  font-weight:600 !important;
+  margin-bottom:1px !important;
+}
+
+.field-body input{
+  color:#10231c !important;
+  font-size:15px !important;
+  font-weight:500 !important;
+}
+
+.field-body input::placeholder{
+  color:#3e564c !important;
+  opacity:.90 !important;
+}
+
+/* Travel / traveller / comfort / review controls */
+.mode-card,
+.traveller-card,
+.comfort-option,
+.review-card{
+  min-height:52px !important;
+  padding:7px 9px !important;
+
+  background:rgba(183,218,207,.52) !important;
+  border:1px solid rgba(6,111,99,.28) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.14),
+    0 6px 15px rgba(0,0,0,.06) !important;
+
+  backdrop-filter:blur(8px) saturate(120%) !important;
+  -webkit-backdrop-filter:blur(8px) saturate(120%) !important;
+}
+
+.mode-card:hover,
+.traveller-card:hover,
+.comfort-option:hover,
+.review-card:hover{
+  background:rgba(195,226,216,.60) !important;
+  border-color:rgba(0,145,132,.42) !important;
+}
+
+.mode-card.active,
+.comfort-option.active{
+  background:rgba(122,215,199,.62) !important;
+  border:1px solid #00a296 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    0 7px 18px rgba(0,112,102,.13) !important;
+}
+
+/* Compact mode icons */
+.mode-card .color-icon,
+.traveller-card .color-icon,
+.comfort-option .color-icon{
+  width:32px !important;
+  height:32px !important;
+}
+
+/* Text contrast */
+.mode-copy>span,
+.traveller-copy>span,
+.comfort-copy>span,
+.review-card strong{
+  color:#10231c !important;
+  font-weight:500 !important;
+}
+
+.mode-copy small,
+.traveller-copy small,
+.comfort-copy small,
+.review-card small{
+  color:#334a40 !important;
+  font-weight:400 !important;
+}
+
+/* Date helper should also feel integrated, not cream/grey */
+.date-help,
+.notice{
+  min-height:56px !important;
+  background:rgba(233,191,101,.42) !important;
+  border:1px solid rgba(215,145,15,.34) !important;
+  color:#5f3c05 !important;
+  box-shadow:0 7px 16px rgba(0,0,0,.06) !important;
+  backdrop-filter:blur(8px) !important;
+  -webkit-backdrop-filter:blur(8px) !important;
+}
+
+.date-help-icon{
+  width:32px !important;
+  height:32px !important;
+  background:rgba(255,209,110,.68) !important;
+  color:#8c5700 !important;
+}
+
+/* Smaller vertical rhythm */
+.route-stack{
+  gap:6px !important;
+}
+
+.group-label{
+  margin-top:10px !important;
+  margin-bottom:6px !important;
+}
+
+.add-stop{
+  padding-top:5px !important;
+}
+
+/* Mobile */
+@media(max-width:650px){
+  .field-box{
+    min-height:54px !important;
+  }
+
+  .mode-card,
+  .traveller-card,
+  .comfort-option,
+  .review-card{
+    min-height:50px !important;
+  }
+}
+/* MTP V6 TRANSPARENT CONTROLS FINAL */
+
+/*
+  Final control treatment:
+  - remove grey/white fills
+  - transparent dark glass
+  - white typography
+  - keep selected state teal
+  - compact heights
+*/
+
+.field-box,
+.mode-card,
+.traveller-card,
+.comfort-option,
+.review-card{
+  background:rgba(8,32,29,.18) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 7px 16px rgba(0,0,0,.08) !important;
+  backdrop-filter:blur(7px) saturate(125%) !important;
+  -webkit-backdrop-filter:blur(7px) saturate(125%) !important;
+}
+
+/* Main route/date fields */
+.field-box{
+  min-height:52px !important;
+  padding:5px 9px !important;
+  grid-template-columns:32px 1fr !important;
+  gap:8px !important;
+}
+
+.field-box:hover,
+.mode-card:hover,
+.traveller-card:hover,
+.comfort-option:hover,
+.review-card:hover{
+  background:rgba(10,47,42,.28) !important;
+  border-color:rgba(111,234,219,.38) !important;
+}
+
+.field-box:focus-within{
+  background:rgba(7,65,58,.34) !important;
+  border-color:#4fe0cf !important;
+  box-shadow:
+    0 0 0 2px rgba(79,224,207,.10),
+    0 8px 18px rgba(0,0,0,.10) !important;
+}
+
+/* White text everywhere inside transparent controls */
+.field-body>span:first-child,
+.mode-copy small,
+.traveller-copy small,
+.comfort-copy small,
+.review-card small{
+  color:rgba(255,255,255,.76) !important;
+  font-weight:500 !important;
+  text-shadow:0 1px 5px rgba(0,0,0,.35);
+}
+
+.field-body input,
+.mode-copy>span,
+.traveller-copy>span,
+.comfort-copy>span,
+.review-card strong{
+  color:#fff !important;
+  font-weight:500 !important;
+  text-shadow:0 1px 6px rgba(0,0,0,.42);
+}
+
+.field-body input::placeholder{
+  color:rgba(255,255,255,.78) !important;
+  opacity:1 !important;
+}
+
+/* Icons become translucent too */
+.field-box .color-icon,
+.mode-card .color-icon,
+.traveller-card .color-icon,
+.comfort-option .color-icon,
+.review-card .color-icon{
+  width:30px !important;
+  height:30px !important;
+  border-radius:9px !important;
+  background:rgba(255,255,255,.14) !important;
+  color:#79eadc !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+}
+
+/* Mode cards compact */
+.mode-card,
+.traveller-card,
+.comfort-option,
+.review-card{
+  min-height:48px !important;
+  padding:6px 8px !important;
+}
+
+/* Selected state: strong teal glass */
+.mode-card.active,
+.comfort-option.active{
+  background:rgba(0,157,146,.55) !important;
+  border:1px solid rgba(99,232,218,.82) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.14),
+    0 8px 20px rgba(0,91,84,.16) !important;
+}
+
+.mode-card.active .color-icon,
+.comfort-option.active .color-icon{
+  background:rgba(255,255,255,.18) !important;
+  color:#fff !important;
+}
+
+.select-mark{
+  border-color:rgba(255,255,255,.52) !important;
+  color:#fff !important;
+}
+
+.mode-card.active .select-mark,
+.comfort-option.active .select-mark{
+  background:rgba(255,255,255,.86) !important;
+  color:#07877c !important;
+}
+
+/* Date helper becomes transparent amber glass, not beige */
+.date-help,
+.notice{
+  min-height:52px !important;
+  background:rgba(115,72,5,.26) !important;
+  border:1px solid rgba(255,191,60,.34) !important;
+  color:#ffe6aa !important;
+  box-shadow:0 7px 16px rgba(0,0,0,.07) !important;
+  backdrop-filter:blur(7px) saturate(125%) !important;
+  -webkit-backdrop-filter:blur(7px) saturate(125%) !important;
+}
+
+.date-help-icon{
+  width:30px !important;
+  height:30px !important;
+  background:rgba(255,181,35,.20) !important;
+  color:#ffd16a !important;
+  border:1px solid rgba(255,213,120,.18) !important;
+}
+
+/* Ensure labels outside cards stay white */
+.planner-card .group-label{
+  color:#fff !important;
+  font-weight:600 !important;
+  text-shadow:0 2px 8px rgba(0,0,0,.60);
+}
+
+/* Add stop remains lighter, not bold */
+.planner-card .add-stop{
+  color:#ffd16a !important;
+  font-weight:400 !important;
+  text-shadow:0 2px 8px rgba(0,0,0,.55);
+}
+
+/* Native date/time icons should remain visible */
+.field-body input[type="date"],
+.field-body input[type="time"]{
+  color-scheme:dark !important;
+}
+
+/* Validation chips blend into theme */
+.planner-card .field-errors,
+.planner-card .validation-row{
+  color:#fff !important;
+}
+
+@media(max-width:650px){
+  .field-box{
+    min-height:50px !important;
+  }
+
+  .mode-card,
+  .traveller-card,
+  .comfort-option,
+  .review-card{
+    min-height:46px !important;
+  }
+}
+/* MTP V6 TRAVELLERS + PURPOSE POLISH */
+
+/* ---------------------------------
+   TRAVELLER COUNTERS
+---------------------------------- */
+
+.traveller-card{
+  background:rgba(8,32,29,.18) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  color:#fff !important;
+  backdrop-filter:blur(7px) saturate(125%) !important;
+  -webkit-backdrop-filter:blur(7px) saturate(125%) !important;
+}
+
+.traveller-copy>span{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.traveller-copy small{
+  color:rgba(255,255,255,.76) !important;
+  font-weight:400 !important;
+}
+
+/* Counter itself should match the premium glass UI */
+.counter{
+  background:rgba(7,49,44,.34) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  border-radius:10px !important;
+  color:#fff !important;
+  min-height:38px !important;
+  overflow:hidden;
+  backdrop-filter:blur(6px) !important;
+  -webkit-backdrop-filter:blur(6px) !important;
+}
+
+.counter button{
+  color:#fff !important;
+  background:rgba(255,255,255,.06) !important;
+}
+
+.counter button:hover{
+  background:rgba(255,255,255,.13) !important;
+}
+
+.counter>span{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+/* Seat / traveller notice text contrast */
+.notice{
+  background:rgba(100,67,4,.25) !important;
+  border:1px solid rgba(255,190,58,.34) !important;
+  color:#ffe8ad !important;
+}
+
+.notice svg{
+  color:#ffd16b !important;
+  flex:0 0 auto;
+}
+
+.notice span{
+  color:#ffe8ad !important;
+}
+
+.notice b{
+  color:#fff !important;
+  font-weight:600 !important;
+}
+
+/* ---------------------------------
+   PURPOSE SECTION
+---------------------------------- */
+
+/* The section titles need to stay clear over the image */
+.theme-comfort .group-label,
+.theme-comfort .purpose-label{
+  color:#fff !important;
+  font-weight:600 !important;
+  text-shadow:0 2px 8px rgba(0,0,0,.58);
+}
+
+/* Purpose cards should use same transparent-glass language */
+.purpose-option{
+  background:rgba(8,32,29,.18) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  color:#fff !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 7px 16px rgba(0,0,0,.08) !important;
+  backdrop-filter:blur(7px) saturate(125%) !important;
+  -webkit-backdrop-filter:blur(7px) saturate(125%) !important;
+}
+
+.purpose-option:hover{
+  background:rgba(10,47,42,.28) !important;
+  border-color:rgba(111,234,219,.38) !important;
+}
+
+.purpose-option.active{
+  background:rgba(0,157,146,.55) !important;
+  border:1px solid rgba(99,232,218,.82) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.14),
+    0 8px 20px rgba(0,91,84,.16) !important;
+}
+
+.purpose-icon{
+  background:rgba(255,255,255,.14) !important;
+  color:#7beadd !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+}
+
+.purpose-option.active .purpose-icon{
+  background:rgba(255,255,255,.18) !important;
+  color:#fff !important;
+}
+
+.purpose-copy strong{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.purpose-copy small{
+  color:rgba(255,255,255,.76) !important;
+  font-weight:400 !important;
+}
+
+/* ---------------------------------
+   FACILITIES / INCLUDE IN MY PLAN
+---------------------------------- */
+
+.facility-compact{
+  background:rgba(8,32,29,.18) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  color:#fff !important;
+  min-height:62px !important;
+  backdrop-filter:blur(7px) saturate(125%) !important;
+  -webkit-backdrop-filter:blur(7px) saturate(125%) !important;
+}
+
+.facility-compact:hover{
+  background:rgba(10,47,42,.28) !important;
+  border-color:rgba(111,234,219,.38) !important;
+}
+
+.facility-compact.active{
+  background:rgba(0,157,146,.55) !important;
+  border:1px solid rgba(99,232,218,.82) !important;
+}
+
+.facility-main{
+  color:#fff !important;
+}
+
+.facility-main strong{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.facility-icon-inline{
+  background:rgba(255,255,255,.14) !important;
+  color:#79eadc !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+}
+
+.facility-status-inline{
+  color:rgba(255,255,255,.72) !important;
+  font-weight:400 !important;
+}
+
+.facility-compact.active .facility-status-inline{
+  color:#fff !important;
+}
+
+/* ---------------------------------
+   COMFORT STYLE TEXT CONSISTENCY
+---------------------------------- */
+
+.comfort-option{
+  background:rgba(8,32,29,.18) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+}
+
+.comfort-option.active{
+  background:rgba(0,157,146,.55) !important;
+  border:1px solid rgba(99,232,218,.82) !important;
+}
+
+.comfort-copy>span{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.comfort-copy small{
+  color:rgba(255,255,255,.76) !important;
+  font-weight:400 !important;
+}
+
+/* mobile */
+@media(max-width:650px){
+  .facility-compact{
+    min-height:58px !important;
+  }
+}
+/* MTP PREMIUM REPORT THEME V1 */
+
+/* ==========================================================
+   WAIT / PLANNING OVERLAY
+   Narrower desktop card, same theme, no layout/feature changes
+   ========================================================== */
+
+.mtp-planning-box{
+  width:min(520px,92vw) !important;
+  max-width:520px !important;
+  padding:24px 26px !important;
+}
+
+@media(max-width:650px){
+  .mtp-planning-box{
+    width:min(94vw,520px) !important;
+    padding:20px 18px !important;
+  }
+}
+
+
+/* ==========================================================
+   REPORT SHELL
+   Best Journey Â· Full Plan Â· Around Your Trip
+   ========================================================== */
+
+.mtp-report-shell{
+  color:#fff !important;
+}
+
+/* Top route/context block */
+.mtp-trip-context{
+  background:
+    linear-gradient(
+      105deg,
+      rgba(96,43,18,.78) 0%,
+      rgba(47,65,47,.70) 46%,
+      rgba(0,105,97,.76) 100%
+    ) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  color:#fff !important;
+  box-shadow:0 16px 38px rgba(0,0,0,.18) !important;
+  backdrop-filter:blur(10px) saturate(125%) !important;
+  -webkit-backdrop-filter:blur(10px) saturate(125%) !important;
+}
+
+.mtp-context-route,
+.mtp-context-route strong{
+  color:#fff !important;
+}
+
+.mtp-route-pin{
+  background:rgba(255,255,255,.12) !important;
+  color:#78eadc !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+}
+
+.mtp-context-chips span{
+  background:rgba(255,255,255,.08) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  color:#fff !important;
+}
+
+
+/* ==========================================================
+   REPORT TABS
+   ========================================================== */
+
+.mtp-report-tabs button{
+  background:rgba(8,32,29,.34) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  color:#fff !important;
+  box-shadow:0 8px 20px rgba(0,0,0,.10) !important;
+  backdrop-filter:blur(8px) saturate(120%) !important;
+  -webkit-backdrop-filter:blur(8px) saturate(120%) !important;
+}
+
+.mtp-report-tabs button:hover{
+  background:rgba(10,48,43,.46) !important;
+  border-color:rgba(101,231,217,.40) !important;
+  box-shadow:0 9px 22px rgba(0,0,0,.13) !important;
+}
+
+.mtp-report-tabs button.active{
+  background:rgba(0,157,146,.56) !important;
+  border-color:rgba(102,234,220,.82) !important;
+  box-shadow:0 10px 24px rgba(0,90,83,.16) !important;
+}
+
+.mtp-report-tabs strong{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-report-tabs small{
+  color:rgba(255,255,255,.72) !important;
+}
+
+.mtp-tab-icon{
+  background:rgba(255,255,255,.12) !important;
+  color:#7beadd !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+}
+
+.mtp-report-tabs button.active .mtp-tab-icon{
+  background:rgba(255,255,255,.18) !important;
+  color:#fff !important;
+}
+
+
+/* ==========================================================
+   BASE REPORT PAGE
+   Remove white report slab
+   ========================================================== */
+
+.mtp-page{
+  background:rgba(7,34,30,.27) !important;
+  border:1px solid rgba(255,255,255,.24) !important;
+  color:#fff !important;
+  box-shadow:0 20px 52px rgba(0,0,0,.20) !important;
+  backdrop-filter:blur(10px) saturate(122%) !important;
+  -webkit-backdrop-filter:blur(10px) saturate(122%) !important;
+}
+
+.mtp-kicker{
+  color:#78eadc !important;
+}
+
+.mtp-section-heading h2,
+.mtp-section-heading h3{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-section-heading p{
+  color:rgba(255,255,255,.74) !important;
+}
+
+
+/* ==========================================================
+   BEST JOURNEY
+   ========================================================== */
+
+.mtp-snapshot-hero{
+  background:
+    linear-gradient(
+      105deg,
+      rgba(105,45,16,.84),
+      rgba(50,67,47,.78) 48%,
+      rgba(0,112,103,.84)
+    ) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+}
+
+.mtp-snapshot-main h1{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-snapshot-main p,
+.mtp-snapshot-hero .mtp-kicker{
+  color:rgba(255,255,255,.82) !important;
+}
+
+.mtp-ai-chip{
+  background:rgba(255,255,255,.09) !important;
+  border-color:rgba(255,255,255,.22) !important;
+  color:#fff !important;
+}
+
+/* Data cards */
+.mtp-fact-card,
+.mtp-moment,
+.mtp-highlight-card,
+.mtp-mode-strip,
+.mtp-mode-item,
+.journey-decision-card,
+.journey-fact-card,
+.recommended-flow,
+.journey-flow-card,
+.overview-info-card,
+.journey-place{
+  background:rgba(8,32,29,.30) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  color:#fff !important;
+  box-shadow:none !important;
+  backdrop-filter:blur(7px) !important;
+  -webkit-backdrop-filter:blur(7px) !important;
+}
+
+.mtp-fact-card small,
+.mtp-moment small,
+.mtp-highlight-card small,
+.mtp-mode-item span,
+.journey-fact-row,
+.journey-fact-note,
+.recommendation-empty,
+.recommendation-reasons>div,
+.recommended-flow-copy small,
+.journey-place small,
+.overview-info-card small,
+.journey-step-copy span{
+  color:rgba(255,255,255,.70) !important;
+}
+
+.mtp-fact-card strong,
+.mtp-moment strong,
+.mtp-highlight-card strong,
+.mtp-mode-item strong,
+.journey-fact-row strong,
+.recommended-flow-copy>span,
+.journey-place strong,
+.overview-info-card strong,
+.journey-step-copy strong,
+.journey-flow-head h3{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.journey-card-label,
+.result-eyebrow{
+  color:#7beadd !important;
+}
+
+.traveller-advice{
+  background:rgba(0,130,118,.20) !important;
+  color:#fff !important;
+}
+
+.traveller-advice svg,
+.recommendation-reasons svg,
+.journey-step-icon{
+  color:#7beadd !important;
+}
+
+.journey-fact-row{
+  border-bottom-color:rgba(255,255,255,.11) !important;
+}
+
+.practical-time-chip{
+  background:rgba(0,157,146,.30) !important;
+  border-color:rgba(105,231,218,.32) !important;
+  color:#fff !important;
+}
+
+.recommended-flow-icon,
+.overview-info-icon,
+.journey-step-icon{
+  background:rgba(255,255,255,.12) !important;
+}
+
+.journey-step-connector{
+  background:rgba(120,234,220,.38) !important;
+}
+
+/* warm informative card */
+.arrival-strategy,
+.mixed-mode-note,
+.important-card{
+  background:rgba(117,72,4,.28) !important;
+  border-color:rgba(255,193,62,.34) !important;
+  color:#ffe8ae !important;
+}
+
+
+/* ==========================================================
+   FULL PLAN
+   ========================================================== */
+
+.mtp-day-card{
+  background:rgba(8,32,29,.28) !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+  color:#fff !important;
+  box-shadow:0 12px 28px rgba(0,0,0,.10) !important;
+  backdrop-filter:blur(7px) !important;
+  -webkit-backdrop-filter:blur(7px) !important;
+}
+
+.mtp-day-header{
+  background:
+    linear-gradient(
+      100deg,
+      rgba(96,43,18,.64),
+      rgba(0,103,95,.58)
+    ) !important;
+  border-bottom:1px solid rgba(255,255,255,.14) !important;
+}
+
+.mtp-day-header h3{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-day-header small{
+  color:rgba(255,255,255,.72) !important;
+}
+
+.mtp-day-number{
+  background:#f5a00a !important;
+  color:#fff !important;
+}
+
+.mtp-timeline-row{
+  border-bottom-color:rgba(255,255,255,.11) !important;
+}
+
+.mtp-timeline-time,
+.mtp-timeline-copy>strong{
+  color:#fff !important;
+}
+
+.mtp-timeline-copy>strong{
+  font-weight:500 !important;
+}
+
+.mtp-timeline-copy p,
+.mtp-timeline-meta span{
+  color:rgba(255,255,255,.70) !important;
+}
+
+.mtp-timeline-icon{
+  background:rgba(255,255,255,.12) !important;
+  color:#78eadc !important;
+}
+
+.mtp-stay-strip{
+  background:rgba(79,42,105,.30) !important;
+  color:#eee0ff !important;
+  border:1px solid rgba(206,168,236,.18) !important;
+}
+
+.mtp-stay-strip>span{
+  background:rgba(255,255,255,.12) !important;
+}
+
+.mtp-stay-strip strong{
+  color:#fff !important;
+}
+
+.mtp-stay-strip small{
+  color:rgba(255,255,255,.72) !important;
+}
+
+.traveller-rule-strip{
+  background:rgba(0,103,95,.20) !important;
+  border-color:rgba(96,226,211,.25) !important;
+  color:#dffaf5 !important;
+}
+
+.practical-rules span{
+  background:rgba(255,255,255,.08) !important;
+  border-color:rgba(255,255,255,.18) !important;
+  color:#fff !important;
+}
+
+
+/* ==========================================================
+   AROUND YOUR TRIP
+   ========================================================== */
+
+.mtp-around-hero{
+  background:
+    linear-gradient(
+      105deg,
+      rgba(97,43,17,.68),
+      rgba(0,109,100,.64)
+    ) !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+}
+
+.mtp-around-hero h2{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-around-hero p{
+  color:rgba(255,255,255,.74) !important;
+}
+
+.mtp-around-icon{
+  background:rgba(255,255,255,.12) !important;
+  color:#7beadd !important;
+}
+
+.mtp-discovery-hints span{
+  background:rgba(115,72,5,.26) !important;
+  border-color:rgba(255,193,62,.30) !important;
+  color:#ffe2a2 !important;
+}
+
+.mtp-places-panel,
+.mtp-confirm-panel,
+.nearby-section{
+  background:rgba(8,32,29,.28) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  color:#fff !important;
+  backdrop-filter:blur(7px) !important;
+  -webkit-backdrop-filter:blur(7px) !important;
+}
+
+.mtp-confirm-item,
+.nearby-place{
+  background:rgba(255,255,255,.07) !important;
+  border:1px solid rgba(255,255,255,.13) !important;
+  color:#fff !important;
+}
+
+.mtp-confirm-item{
+  color:rgba(255,255,255,.82) !important;
+}
+
+.nearby-head h3,
+.nearby-results-head,
+.nearby-place-name{
+  color:#fff !important;
+}
+
+.nearby-head p,
+.nearby-place-address,
+.nearby-place-meta,
+.nearby-context-tip,
+.nearby-results-head small{
+  color:rgba(255,255,255,.70) !important;
+}
+
+.nearby-kicker,
+.nearby-context{
+  color:#7beadd !important;
+}
+
+.nearby-actions button{
+  background:rgba(8,32,29,.30) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  color:#fff !important;
+}
+
+.nearby-actions button:hover,
+.nearby-actions button.active{
+  background:rgba(0,157,146,.50) !important;
+  border-color:rgba(99,232,218,.72) !important;
+}
+
+.nearby-actions button>svg{
+  color:#7beadd !important;
+}
+
+.nearby-actions button>span>span{
+  color:#fff !important;
+}
+
+.nearby-actions button small{
+  color:rgba(255,255,255,.68) !important;
+}
+
+.nearby-place-number{
+  background:rgba(255,255,255,.12) !important;
+  color:#7beadd !important;
+}
+
+.nearby-place-actions button{
+  background:rgba(255,255,255,.08) !important;
+  border-color:rgba(255,255,255,.18) !important;
+  color:#fff !important;
+}
+
+.nearby-place-actions button:hover{
+  background:rgba(0,157,146,.34) !important;
+}
+
+.nearby-loading,
+.nearby-message{
+  background:rgba(255,255,255,.08) !important;
+  color:#fff !important;
+}
+
+
+/* ==========================================================
+   REPORT ACTION BAR
+   ========================================================== */
+
+.mtp-report-actions{
+  background:rgba(7,31,28,.64) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  box-shadow:0 12px 30px rgba(0,0,0,.18) !important;
+  backdrop-filter:blur(12px) saturate(120%) !important;
+  -webkit-backdrop-filter:blur(12px) saturate(120%) !important;
+}
+
+.mtp-action.secondary{
+  background:rgba(255,255,255,.08) !important;
+  border-color:rgba(255,255,255,.18) !important;
+  color:#fff !important;
+}
+
+.mtp-action.secondary:hover{
+  background:rgba(255,255,255,.14) !important;
+  border-color:rgba(255,255,255,.30) !important;
+}
+
+.mtp-action.primary{
+  background:linear-gradient(135deg,#f59b06,#ffaf18) !important;
+  border-color:transparent !important;
+  color:#fff !important;
+}
+
+.mtp-action.whatsapp{
+  background:rgba(0,157,146,.48) !important;
+  border-color:rgba(99,232,218,.48) !important;
+  color:#fff !important;
+}
+
+
+/* ==========================================================
+   SMALL SCREEN
+   ========================================================== */
+
+@media(max-width:760px){
+  .mtp-page{
+    background:rgba(7,34,30,.36) !important;
+  }
+
+  .mtp-report-tabs button{
+    background:rgba(8,32,29,.42) !important;
+  }
+}
+/* MTP V10 REPORT THEME MATCH HOME */
+
+/*
+  The report UI actually renders with mtp-v10-* classes.
+  These overrides intentionally target those real classes so the
+  report visually matches the premium home/planner theme.
+*/
+
+/* ---------- OUTER REPORT ---------- */
+
+.mtp-report-shell{
+  max-width:1120px !important;
+  color:#fff !important;
+}
+
+/* remove any remaining pale shell treatment */
+.mtp-report-shell .mtp-page,
+.mtp-report-shell .mtp-page.mtp-v10-page,
+.mtp-report-shell .mtp-snapshot-page,
+.mtp-report-shell .mtp-itinerary-page,
+.mtp-report-shell .mtp-around-page{
+  background:rgba(7,34,30,.26) !important;
+  border:1px solid rgba(255,255,255,.24) !important;
+  box-shadow:0 20px 52px rgba(0,0,0,.20) !important;
+  backdrop-filter:blur(10px) saturate(122%) !important;
+  -webkit-backdrop-filter:blur(10px) saturate(122%) !important;
+}
+
+/* ---------- TRIP CONTEXT ---------- */
+
+.mtp-trip-context{
+  background:
+    linear-gradient(
+      105deg,
+      rgba(109,45,15,.82) 0%,
+      rgba(52,62,47,.74) 48%,
+      rgba(0,112,103,.80) 100%
+    ) !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+  color:#fff !important;
+}
+
+.mtp-context-route,
+.mtp-context-route strong{
+  color:#fff !important;
+}
+
+.mtp-context-chips span{
+  background:rgba(255,255,255,.08) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  color:#fff !important;
+}
+
+/* ---------- V10 REPORT TABS ---------- */
+
+.mtp-report-tabs.mtp-v10-steps .mtp-v10-step{
+  background:rgba(8,32,29,.38) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  color:#fff !important;
+  box-shadow:0 8px 20px rgba(0,0,0,.10) !important;
+  backdrop-filter:blur(8px) saturate(120%) !important;
+  -webkit-backdrop-filter:blur(8px) saturate(120%) !important;
+}
+
+.mtp-report-tabs.mtp-v10-steps .mtp-v10-step:hover{
+  background:rgba(10,48,43,.48) !important;
+  border-color:rgba(105,231,218,.42) !important;
+}
+
+.mtp-report-tabs.mtp-v10-steps .mtp-v10-step.active{
+  background:linear-gradient(
+    135deg,
+    rgba(0,157,146,.78),
+    rgba(16,183,165,.72)
+  ) !important;
+  border-color:rgba(101,235,220,.84) !important;
+}
+
+.mtp-v10-step-copy strong{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-v10-step-copy small{
+  color:rgba(255,255,255,.72) !important;
+}
+
+.mtp-v10-step-number,
+.mtp-v10-step-icon{
+  background:rgba(255,255,255,.14) !important;
+  color:#fff !important;
+}
+
+.mtp-v10-step-arrow{
+  color:rgba(255,255,255,.64) !important;
+}
+
+/* ---------- BEST JOURNEY HERO ---------- */
+
+.mtp-v10-hero{
+  background:
+    linear-gradient(
+      105deg,
+      rgba(107,45,15,.86) 0%,
+      rgba(52,63,47,.78) 46%,
+      rgba(0,112,103,.84) 100%
+    ) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  box-shadow:0 14px 32px rgba(0,0,0,.14) !important;
+}
+
+.mtp-v10-eyebrow{
+  color:#7beadd !important;
+}
+
+.mtp-v10-hero h1,
+.mtp-v10-hero-main h1{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-v10-hero-sub{
+  color:rgba(255,255,255,.78) !important;
+}
+
+.mtp-v10-mode-pill,
+.mtp-v10-smart-pill{
+  background:rgba(255,255,255,.09) !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+  color:#fff !important;
+}
+
+.mtp-v10-view-plan{
+  background:linear-gradient(135deg,#009d92,#12b8a7) !important;
+  color:#fff !important;
+  border:0 !important;
+  box-shadow:0 9px 20px rgba(0,96,88,.20) !important;
+}
+
+.mtp-v10-hero-mark{
+  background:rgba(255,255,255,.12) !important;
+  color:#7beadd !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+}
+
+/* ---------- FACT CARDS ---------- */
+
+.mtp-v10-facts article{
+  background:rgba(8,32,29,.28) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  color:#fff !important;
+  backdrop-filter:blur(7px) !important;
+  -webkit-backdrop-filter:blur(7px) !important;
+}
+
+.mtp-v10-facts article small{
+  color:rgba(255,255,255,.70) !important;
+}
+
+.mtp-v10-facts article strong{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-v10-facts article>span{
+  background:rgba(255,255,255,.12) !important;
+  color:#7beadd !important;
+}
+
+/* ---------- BIG PICTURE / STORY ---------- */
+
+.mtp-v10-story{
+  background:rgba(8,32,29,.26) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+}
+
+.mtp-v10-story header h2{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-v10-story header button{
+  color:#7beadd !important;
+}
+
+.mtp-v10-story-track article{
+  background:rgba(255,255,255,.08) !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  color:#fff !important;
+}
+
+.mtp-v10-story-track article small{
+  color:rgba(255,255,255,.64) !important;
+}
+
+.mtp-v10-story-track article strong{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-v10-story-track article p{
+  color:rgba(255,255,255,.72) !important;
+}
+
+.mtp-v10-story-track article>span{
+  background:rgba(255,255,255,.12) !important;
+  color:#7beadd !important;
+}
+
+.mtp-v10-connector{
+  background:rgba(101,232,218,.48) !important;
+}
+
+/* ---------- WHY / ARRANGEMENT ---------- */
+
+.mtp-v10-support article{
+  background:rgba(8,32,29,.26) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  color:#fff !important;
+}
+
+.mtp-v10-support small{
+  color:rgba(255,255,255,.62) !important;
+}
+
+.mtp-v10-support strong{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-v10-support-icon{
+  background:rgba(255,255,255,.12) !important;
+  color:#7beadd !important;
+}
+
+/* ---------- OTHER OPTIONS ---------- */
+
+.mtp-v10-options{
+  background:rgba(8,32,29,.24) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+}
+
+.mtp-v10-options h2{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-v10-option{
+  background:rgba(255,255,255,.08) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  color:#fff !important;
+}
+
+.mtp-v10-option.recommended{
+  border-color:rgba(99,232,218,.46) !important;
+  background:rgba(0,157,146,.20) !important;
+}
+
+.mtp-v10-option.possible,
+.mtp-v10-option.good{
+  border-color:rgba(255,194,72,.40) !important;
+  background:rgba(126,78,8,.18) !important;
+}
+
+.mtp-v10-option.poor,
+.mtp-v10-option.not_practical{
+  border-color:rgba(232,133,100,.40) !important;
+  background:rgba(108,45,31,.18) !important;
+}
+
+.mtp-v10-option strong{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-v10-option small,
+.mtp-v10-option p{
+  color:rgba(255,255,255,.70) !important;
+}
+
+.mtp-v10-option-icon{
+  background:rgba(255,255,255,.12) !important;
+  color:#7beadd !important;
+}
+
+/* ---------- FULL PLAN ---------- */
+
+.mtp-report-shell .mtp-itinerary-page{
+  color:#fff !important;
+}
+
+.mtp-report-shell .mtp-itinerary-page .mtp-section-heading h2,
+.mtp-report-shell .mtp-itinerary-page .mtp-section-heading h3{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-report-shell .mtp-itinerary-page .mtp-section-heading p{
+  color:rgba(255,255,255,.72) !important;
+}
+
+.mtp-day-card{
+  background:rgba(8,32,29,.28) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+}
+
+.mtp-day-header{
+  background:
+    linear-gradient(
+      100deg,
+      rgba(107,45,15,.66),
+      rgba(0,108,99,.60)
+    ) !important;
+  border-bottom:1px solid rgba(255,255,255,.12) !important;
+}
+
+.mtp-day-header h3{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-day-header small{
+  color:rgba(255,255,255,.72) !important;
+}
+
+.mtp-timeline-row{
+  border-bottom-color:rgba(255,255,255,.10) !important;
+}
+
+.mtp-timeline-time,
+.mtp-timeline-copy>strong{
+  color:#fff !important;
+}
+
+.mtp-timeline-copy>strong{
+  font-weight:500 !important;
+}
+
+.mtp-timeline-copy p,
+.mtp-timeline-meta span{
+  color:rgba(255,255,255,.70) !important;
+}
+
+.mtp-timeline-icon{
+  background:rgba(255,255,255,.12) !important;
+  color:#7beadd !important;
+}
+
+.mtp-stay-strip{
+  background:rgba(91,53,118,.28) !important;
+  border:1px solid rgba(201,169,232,.18) !important;
+  color:#fff !important;
+}
+
+.mtp-stay-strip>span{
+  background:rgba(255,255,255,.12) !important;
+}
+
+.mtp-stay-strip small{
+  color:rgba(255,255,255,.66) !important;
+}
+
+.mtp-stay-strip strong{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+/* ---------- AROUND YOUR TRIP ---------- */
+
+.mtp-report-shell .mtp-around-page{
+  color:#fff !important;
+}
+
+.mtp-around-hero{
+  background:
+    linear-gradient(
+      105deg,
+      rgba(107,45,15,.72),
+      rgba(0,110,100,.68)
+    ) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+}
+
+.mtp-around-hero h2{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-around-hero p{
+  color:rgba(255,255,255,.72) !important;
+}
+
+.mtp-around-icon{
+  background:rgba(255,255,255,.12) !important;
+  color:#7beadd !important;
+}
+
+.mtp-places-panel,
+.mtp-confirm-panel,
+.nearby-section{
+  background:rgba(8,32,29,.28) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  color:#fff !important;
+}
+
+.nearby-actions button,
+.nearby-place,
+.mtp-confirm-item{
+  background:rgba(255,255,255,.08) !important;
+  border:1px solid rgba(255,255,255,.13) !important;
+  color:#fff !important;
+}
+
+.nearby-actions button.active,
+.nearby-actions button:hover{
+  background:rgba(0,157,146,.48) !important;
+  border-color:rgba(99,232,218,.64) !important;
+}
+
+.nearby-head h3,
+.nearby-place-name,
+.mtp-confirm-panel .mtp-section-heading h3{
+  color:#fff !important;
+}
+
+.nearby-head p,
+.nearby-place-address,
+.nearby-place-meta,
+.nearby-results-head small,
+.mtp-confirm-item p{
+  color:rgba(255,255,255,.70) !important;
+}
+
+.nearby-kicker,
+.nearby-context,
+.nearby-actions button>svg{
+  color:#7beadd !important;
+}
+
+/* ---------- PAGE NAV ---------- */
+
+.mtp-page-navigation{
+  background:rgba(7,31,28,.56) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  backdrop-filter:blur(10px) !important;
+  -webkit-backdrop-filter:blur(10px) !important;
+}
+
+.mtp-page-nav-btn{
+  background:rgba(255,255,255,.08) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+  color:#fff !important;
+}
+
+.mtp-page-nav-btn.primary{
+  background:linear-gradient(135deg,#009d92,#12b8a7) !important;
+  border-color:transparent !important;
+  color:#fff !important;
+}
+
+.mtp-page-position strong,
+.mtp-page-position span{
+  color:#fff !important;
+}
+
+/* ---------- ACTION BAR ---------- */
+
+.mtp-report-actions{
+  background:rgba(7,31,28,.62) !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+}
+
+.mtp-action.secondary{
+  background:rgba(255,255,255,.08) !important;
+  border-color:rgba(255,255,255,.16) !important;
+  color:#fff !important;
+}
+
+.mtp-action.whatsapp{
+  background:rgba(0,157,146,.48) !important;
+  border-color:rgba(99,232,218,.48) !important;
+  color:#fff !important;
+}
+
+.mtp-action.primary{
+  background:linear-gradient(135deg,#f59b06,#ffaf18) !important;
+  border-color:transparent !important;
+  color:#fff !important;
+}
+
+/* ---------- MOBILE ---------- */
+
+@media(max-width:760px){
+  .mtp-report-shell .mtp-page,
+  .mtp-report-shell .mtp-page.mtp-v10-page{
+    background:rgba(7,34,30,.36) !important;
+  }
+}
+/* MTP REPORT HOME-MATCH FINAL */
+
+/*
+  Match report screens to the home/planner theme:
+  - same transparent dark glass
+  - same white typography
+  - same orange -> teal header language
+  - same teal active controls
+  - remove pale grey / mint / white slab look
+*/
+
+/* OUTER SHELL */
+.mtp-report-shell{
+  background:transparent !important;
+  color:#fff !important;
+}
+
+.mtp-report-shell::before,
+.mtp-report-shell::after{
+  display:none !important;
+}
+
+/* remove light frame around entire report */
+.mtp-report-shell > *{
+  box-shadow:none;
+}
+
+/* CONTEXT HEADER */
+.mtp-trip-context{
+  background:
+    linear-gradient(100deg,
+      rgba(110,46,15,.84) 0%,
+      rgba(67,56,35,.72) 46%,
+      rgba(0,112,103,.82) 100%
+    ) !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+  color:#fff !important;
+  box-shadow:0 14px 30px rgba(0,0,0,.16) !important;
+}
+
+.mtp-context-route,
+.mtp-context-route strong{
+  color:#fff !important;
+}
+
+.mtp-context-chips span{
+  background:rgba(255,255,255,.09) !important;
+  border:1px solid rgba(255,255,255,.20) !important;
+  color:#fff !important;
+}
+
+/* TOP 3 REPORT TABS - EXACTLY same visual language as home steps */
+.mtp-v10-step{
+  background:rgba(8,32,29,.24) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  color:#fff !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 7px 16px rgba(0,0,0,.08) !important;
+  backdrop-filter:blur(7px) saturate(125%) !important;
+  -webkit-backdrop-filter:blur(7px) saturate(125%) !important;
+}
+
+.mtp-v10-step.active{
+  background:rgba(0,157,146,.58) !important;
+  border-color:rgba(99,232,218,.80) !important;
+}
+
+.mtp-v10-step-copy strong{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-v10-step-copy small{
+  color:rgba(255,255,255,.74) !important;
+}
+
+.mtp-v10-step-number,
+.mtp-v10-step-icon{
+  background:rgba(255,255,255,.13) !important;
+  color:#fff !important;
+}
+
+.mtp-v10-step-arrow{
+  color:rgba(255,255,255,.66) !important;
+}
+
+/* REMOVE GREY / WHITE PAGE SLABS */
+.mtp-page,
+.mtp-v10-page,
+.mtp-snapshot-page,
+.mtp-itinerary-page,
+.mtp-around-page{
+  background:rgba(8,32,29,.18) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  color:#fff !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 18px 40px rgba(0,0,0,.14) !important;
+  backdrop-filter:blur(8px) saturate(120%) !important;
+  -webkit-backdrop-filter:blur(8px) saturate(120%) !important;
+}
+
+/* BEST JOURNEY HERO */
+.mtp-v10-hero{
+  background:
+    linear-gradient(100deg,
+      rgba(111,46,15,.84) 0%,
+      rgba(66,57,35,.72) 48%,
+      rgba(0,112,103,.82) 100%
+    ) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+}
+
+.mtp-v10-eyebrow{
+  color:#78eadc !important;
+}
+
+.mtp-v10-hero h1,
+.mtp-v10-hero-sub{
+  color:#fff !important;
+}
+
+.mtp-v10-hero h1{
+  font-weight:500 !important;
+}
+
+.mtp-v10-hero-sub{
+  opacity:.78 !important;
+}
+
+.mtp-v10-mode-pill,
+.mtp-v10-smart-pill{
+  background:rgba(255,255,255,.10) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  color:#fff !important;
+}
+
+.mtp-v10-view-plan{
+  background:rgba(0,157,146,.66) !important;
+  border:1px solid rgba(99,232,218,.58) !important;
+  color:#fff !important;
+}
+
+.mtp-v10-hero-mark{
+  background:rgba(255,255,255,.12) !important;
+  color:#78eadc !important;
+}
+
+/* FACT CARDS */
+.mtp-v10-facts article{
+  background:rgba(8,32,29,.22) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+}
+
+.mtp-v10-facts article small{
+  color:rgba(255,255,255,.70) !important;
+}
+
+.mtp-v10-facts article strong{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-v10-facts article>span{
+  background:rgba(255,255,255,.12) !important;
+  color:#78eadc !important;
+}
+
+/* BIG PICTURE */
+.mtp-v10-story{
+  background:rgba(8,32,29,.20) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+}
+
+.mtp-v10-story header h2{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-v10-story header button{
+  color:#78eadc !important;
+}
+
+.mtp-v10-story-track article{
+  background:rgba(8,32,29,.18) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+}
+
+.mtp-v10-story-track article small{
+  color:rgba(255,255,255,.62) !important;
+}
+
+.mtp-v10-story-track article strong{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-v10-story-track article p{
+  color:rgba(255,255,255,.72) !important;
+}
+
+.mtp-v10-story-track article>span{
+  background:rgba(255,255,255,.12) !important;
+  color:#78eadc !important;
+}
+
+.mtp-v10-connector{
+  background:rgba(101,232,218,.40) !important;
+}
+
+/* SUPPORT + OTHER OPTIONS */
+.mtp-v10-support article,
+.mtp-v10-option{
+  background:rgba(8,32,29,.18) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+}
+
+.mtp-v10-support small,
+.mtp-v10-option small,
+.mtp-v10-option p{
+  color:rgba(255,255,255,.68) !important;
+}
+
+.mtp-v10-support strong,
+.mtp-v10-option strong{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-v10-support-icon,
+.mtp-v10-option-icon{
+  background:rgba(255,255,255,.12) !important;
+  color:#78eadc !important;
+}
+
+.mtp-v10-options{
+  background:rgba(8,32,29,.18) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+}
+
+.mtp-v10-options h2{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+/* FULL PLAN */
+.mtp-section-heading h2,
+.mtp-section-heading h3{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-section-heading p{
+  color:rgba(255,255,255,.72) !important;
+}
+
+.mtp-day-card{
+  background:rgba(8,32,29,.18) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+}
+
+.mtp-day-header{
+  background:
+    linear-gradient(100deg,
+      rgba(111,46,15,.72),
+      rgba(0,112,103,.66)
+    ) !important;
+  border-bottom:1px solid rgba(255,255,255,.12) !important;
+}
+
+.mtp-day-header h3{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-day-header small{
+  color:rgba(255,255,255,.68) !important;
+}
+
+.mtp-timeline-row{
+  border-bottom-color:rgba(255,255,255,.10) !important;
+}
+
+.mtp-timeline-time,
+.mtp-timeline-copy>strong{
+  color:#fff !important;
+}
+
+.mtp-timeline-copy>strong{
+  font-weight:500 !important;
+}
+
+.mtp-timeline-copy p,
+.mtp-timeline-meta span{
+  color:rgba(255,255,255,.68) !important;
+}
+
+.mtp-timeline-icon{
+  background:rgba(255,255,255,.12) !important;
+  color:#78eadc !important;
+}
+
+/* AROUND YOUR TRIP */
+.mtp-around-hero{
+  background:
+    linear-gradient(100deg,
+      rgba(111,46,15,.76),
+      rgba(0,112,103,.70)
+    ) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+}
+
+.mtp-around-hero h2{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-around-hero p{
+  color:rgba(255,255,255,.70) !important;
+}
+
+.mtp-around-icon{
+  background:rgba(255,255,255,.12) !important;
+  color:#78eadc !important;
+}
+
+.mtp-places-panel,
+.mtp-confirm-panel,
+.nearby-section{
+  background:rgba(8,32,29,.18) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+}
+
+.nearby-actions button,
+.nearby-place,
+.mtp-confirm-item{
+  background:rgba(8,32,29,.18) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+}
+
+.nearby-actions button.active,
+.nearby-actions button:hover{
+  background:rgba(0,157,146,.50) !important;
+  border-color:rgba(99,232,218,.65) !important;
+}
+
+.nearby-head h3,
+.nearby-place-name,
+.mtp-confirm-panel h3{
+  color:#fff !important;
+}
+
+.nearby-head p,
+.nearby-place-address,
+.nearby-place-meta,
+.mtp-confirm-item p{
+  color:rgba(255,255,255,.70) !important;
+}
+
+.nearby-kicker,
+.nearby-context,
+.nearby-actions button>svg{
+  color:#78eadc !important;
+}
+
+/* PAGE NAV + ACTION BAR */
+.mtp-page-navigation,
+.mtp-report-actions{
+  background:rgba(8,32,29,.26) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  backdrop-filter:blur(8px) !important;
+  -webkit-backdrop-filter:blur(8px) !important;
+}
+
+.mtp-page-nav-btn,
+.mtp-action.secondary{
+  background:rgba(8,32,29,.18) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+  color:#fff !important;
+}
+
+.mtp-page-nav-btn.primary,
+.mtp-action.whatsapp{
+  background:rgba(0,157,146,.58) !important;
+  border:1px solid rgba(99,232,218,.55) !important;
+  color:#fff !important;
+}
+
+.mtp-action.primary{
+  background:linear-gradient(135deg,#f59b06,#ffaf18) !important;
+  border:0 !important;
+  color:#fff !important;
+}
+
+/* remove pale-grey disabled look */
+.mtp-page-nav-btn:disabled{
+  opacity:.42 !important;
+}
+
+/* mobile */
+@media(max-width:760px){
+  .mtp-page,
+  .mtp-v10-page,
+  .mtp-snapshot-page,
+  .mtp-itinerary-page,
+  .mtp-around-page{
+    background:rgba(8,32,29,.24) !important;
+  }
+}
+/* MTP REPORT READABILITY + MOBILE POLISH */
+
+/* ==========================================================
+   TOP ROUTE / FROM -> TO
+   Bigger, cleaner, white
+   ========================================================== */
+
+.mtp-context-route{
+  font-size:19px !important;
+  line-height:1.35 !important;
+  gap:11px !important;
+}
+
+.mtp-context-route strong{
+  color:#fff !important;
+  font-size:19px !important;
+  line-height:1.35 !important;
+  font-weight:500 !important;
+  text-shadow:0 2px 8px rgba(0,0,0,.34);
+}
+
+.mtp-context-route>svg{
+  color:rgba(255,255,255,.82) !important;
+  flex:0 0 auto;
+}
+
+.mtp-route-pin{
+  color:#7beadd !important;
+}
+
+.mtp-context-chips span{
+  color:#fff !important;
+  font-size:13px !important;
+}
+
+
+/* ==========================================================
+   REPORT TYPOGRAPHY
+   Transparent screens need larger / clearer text
+   ========================================================== */
+
+.mtp-report-shell{
+  font-size:14px !important;
+}
+
+.mtp-v10-hero-sub,
+.mtp-v10-story-track article p,
+.mtp-v10-option p,
+.mtp-timeline-copy p,
+.mtp-timeline-meta span,
+.nearby-head p,
+.nearby-place-address,
+.nearby-place-meta,
+.mtp-confirm-item p{
+  font-size:13px !important;
+  line-height:1.45 !important;
+  color:rgba(255,255,255,.82) !important;
+}
+
+.mtp-v10-facts article small,
+.mtp-v10-story-track article small,
+.mtp-v10-support small,
+.mtp-v10-option small,
+.mtp-day-header small,
+.mtp-stay-strip small{
+  color:rgba(255,255,255,.78) !important;
+}
+
+.mtp-v10-facts article strong,
+.mtp-v10-story-track article strong,
+.mtp-v10-support strong,
+.mtp-v10-option strong,
+.mtp-timeline-copy>strong,
+.mtp-stay-strip strong{
+  color:#fff !important;
+}
+
+
+/* ==========================================================
+   FULL PLAN HEADING
+   Remove the pale/washed strip and make it match the theme
+   ========================================================== */
+
+.mtp-itinerary-page>.mtp-section-heading{
+  margin-bottom:12px !important;
+  padding:14px 16px !important;
+  border-radius:13px !important;
+  background:
+    linear-gradient(
+      100deg,
+      rgba(107,45,15,.72),
+      rgba(0,112,103,.66)
+    ) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  box-shadow:none !important;
+}
+
+.mtp-itinerary-page>.mtp-section-heading .mtp-kicker{
+  color:#7beadd !important;
+}
+
+.mtp-itinerary-page>.mtp-section-heading h2{
+  color:#fff !important;
+  font-size:24px !important;
+  line-height:1.2 !important;
+  font-weight:500 !important;
+}
+
+.mtp-itinerary-page>.mtp-section-heading p{
+  color:rgba(255,255,255,.80) !important;
+  font-size:14px !important;
+  line-height:1.4 !important;
+}
+
+
+/* ==========================================================
+   STAY STRIP
+   Current strip is too faint against the image.
+   ========================================================== */
+
+.mtp-stay-strip{
+  margin:8px 14px 14px !important;
+  padding:11px 13px !important;
+  background:
+    linear-gradient(
+      100deg,
+      rgba(74,42,103,.66),
+      rgba(88,56,116,.52)
+    ) !important;
+  border:1px solid rgba(220,185,255,.42) !important;
+  color:#fff !important;
+  box-shadow:0 8px 20px rgba(0,0,0,.10) !important;
+}
+
+.mtp-stay-strip>span{
+  background:rgba(255,255,255,.16) !important;
+  color:#f2ddff !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+}
+
+.mtp-stay-strip small{
+  color:#e8d5f6 !important;
+  font-size:11px !important;
+  letter-spacing:.6px !important;
+}
+
+.mtp-stay-strip strong{
+  color:#fff !important;
+  font-size:14px !important;
+  font-weight:500 !important;
+}
+
+
+/* ==========================================================
+   DAY / TIMELINE READABILITY
+   ========================================================== */
+
+.mtp-day-header h3{
+  font-size:18px !important;
+}
+
+.mtp-timeline-time{
+  color:#fff !important;
+  font-size:13px !important;
+  font-weight:600 !important;
+}
+
+.mtp-timeline-copy>strong{
+  font-size:15px !important;
+  font-weight:500 !important;
+}
+
+.mtp-timeline-copy p{
+  margin-top:4px !important;
+}
+
+.mtp-timeline-meta span{
+  color:rgba(255,255,255,.74) !important;
+}
+
+
+/* ==========================================================
+   AROUND YOUR TRIP READABILITY
+   ========================================================== */
+
+.mtp-around-hero h2{
+  font-size:23px !important;
+}
+
+.nearby-head h3,
+.mtp-confirm-panel h3{
+  font-size:19px !important;
+  font-weight:500 !important;
+}
+
+.nearby-actions button>span>span,
+.nearby-place-name{
+  color:#fff !important;
+  font-size:14px !important;
+}
+
+.nearby-actions button small{
+  color:rgba(255,255,255,.72) !important;
+  font-size:11px !important;
+}
+
+
+/* ==========================================================
+   DESKTOP WIDTH
+   Keep desktop comfortably wide.
+   ========================================================== */
+
+@media(min-width:1000px){
+  .mtp-report-shell{
+    max-width:1180px !important;
+  }
+}
+
+
+/* ==========================================================
+   MOBILE
+   Reduce dead edge padding; preserve desktop proportions.
+   ========================================================== */
+
+@media(max-width:760px){
+
+  .mtp-report-shell{
+    width:calc(100vw - 10px) !important;
+    max-width:none !important;
+    margin-left:5px !important;
+    margin-right:5px !important;
+    padding-left:0 !important;
+    padding-right:0 !important;
+  }
+
+  .mtp-trip-context{
+    padding:10px !important;
+    border-radius:13px !important;
+  }
+
+  .mtp-context-route{
+    gap:7px !important;
+    font-size:14px !important;
+    align-items:flex-start !important;
+    flex-wrap:wrap !important;
+  }
+
+  .mtp-context-route strong{
+    font-size:14px !important;
+    line-height:1.35 !important;
+    white-space:normal !important;
+  }
+
+  .mtp-route-pin{
+    width:31px !important;
+    height:31px !important;
+    flex-basis:31px !important;
+  }
+
+  .mtp-context-chips{
+    margin-top:8px !important;
+  }
+
+  .mtp-context-chips span{
+    font-size:11px !important;
+    padding:4px 7px !important;
+  }
+
+  .mtp-report-tabs{
+    gap:4px !important;
+    margin:8px 0 !important;
+  }
+
+  .mtp-v10-step{
+    min-height:62px !important;
+    padding:6px 5px !important;
+    gap:5px !important;
+  }
+
+  .mtp-v10-step-number,
+  .mtp-v10-step-icon{
+    width:29px !important;
+    height:29px !important;
+    flex-basis:29px !important;
+  }
+
+  .mtp-v10-step-copy strong{
+    font-size:11px !important;
+  }
+
+  .mtp-v10-step-copy small{
+    display:none !important;
+  }
+
+  .mtp-page,
+  .mtp-v10-page,
+  .mtp-snapshot-page,
+  .mtp-itinerary-page,
+  .mtp-around-page{
+    padding:8px !important;
+    border-radius:12px !important;
+  }
+
+  .mtp-v10-hero,
+  .mtp-v10-story,
+  .mtp-v10-options,
+  .mtp-around-hero,
+  .mtp-places-panel,
+  .mtp-confirm-panel{
+    padding:11px !important;
+    border-radius:11px !important;
+  }
+
+  .mtp-itinerary-page>.mtp-section-heading{
+    padding:11px 12px !important;
+  }
+
+  .mtp-itinerary-page>.mtp-section-heading h2{
+    font-size:20px !important;
+  }
+
+  .mtp-day-header{
+    padding:10px 11px !important;
+  }
+
+  .mtp-timeline{
+    padding:4px 9px !important;
+  }
+
+  .mtp-timeline-row{
+    grid-template-columns:52px 31px 1fr !important;
+    gap:6px !important;
+    padding:9px 0 !important;
+  }
+
+  .mtp-timeline-time{
+    font-size:11px !important;
+  }
+
+  .mtp-timeline-copy>strong{
+    font-size:13px !important;
+  }
+
+  .mtp-timeline-copy p,
+  .mtp-timeline-meta span{
+    font-size:11px !important;
+  }
+
+  .mtp-stay-strip{
+    margin:7px 9px 10px !important;
+    padding:9px 10px !important;
+  }
+
+  .mtp-page-navigation,
+  .mtp-report-actions{
+    margin-left:0 !important;
+    margin-right:0 !important;
+    padding:6px !important;
+    border-radius:10px !important;
+  }
+
+  .mtp-action{
+    padding-left:8px !important;
+    padding-right:8px !important;
+  }
+}
+/* MTP FINAL GREY REMOVAL + MOBILE WIDTH */
+
+/* ==========================================================
+   REPORT FACT STRIP
+   Remove the remaining grey/white block completely.
+   ========================================================== */
+
+.mtp-v10-facts{
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+  gap:8px !important;
+}
+
+.mtp-v10-facts article{
+  background:rgba(8,32,29,.20) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+  color:#fff !important;
+  box-shadow:none !important;
+  backdrop-filter:blur(7px) saturate(125%) !important;
+  -webkit-backdrop-filter:blur(7px) saturate(125%) !important;
+}
+
+.mtp-v10-facts article:hover{
+  background:rgba(8,45,40,.27) !important;
+}
+
+.mtp-v10-facts article small{
+  color:rgba(255,255,255,.72) !important;
+}
+
+.mtp-v10-facts article strong{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-v10-facts article>span{
+  background:rgba(255,255,255,.12) !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  color:#78eadc !important;
+}
+
+/* Catch any older metric classes still contributing pale fills */
+.mtp-report-shell .summary-metric,
+.mtp-report-shell .overview-metrics,
+.mtp-report-shell .mtp-fact-grid{
+  background:transparent !important;
+}
+
+.mtp-report-shell .summary-metric{
+  border-color:rgba(255,255,255,.14) !important;
+}
+
+
+/* ==========================================================
+   FROM -> TO
+   One point smaller than current.
+   ========================================================== */
+
+.mtp-context-route{
+  font-size:18px !important;
+}
+
+.mtp-context-route strong{
+  font-size:18px !important;
+  line-height:1.3 !important;
+  font-weight:500 !important;
+  color:#fff !important;
+}
+
+
+/* ==========================================================
+   MOBILE: USE MORE SCREEN WIDTH
+   Home planner + reports.
+   ========================================================== */
+
+@media(max-width:760px){
+
+  /* Existing 94% width was leaving too much side space */
+  .page-width{
+    width:calc(100% - 12px) !important;
+    max-width:none !important;
+  }
+
+  .header-inner{
+    width:calc(100% - 12px) !important;
+    max-width:none !important;
+  }
+
+  .main{
+    padding-left:0 !important;
+    padding-right:0 !important;
+  }
+
+  /* Planner outer surface */
+  .planner-card{
+    margin-left:0 !important;
+    margin-right:0 !important;
+  }
+
+  /* Report outer surface */
+  .mtp-report-shell{
+    width:calc(100vw - 8px) !important;
+    max-width:none !important;
+    margin-left:4px !important;
+    margin-right:4px !important;
+  }
+
+  .mtp-page,
+  .mtp-v10-page,
+  .mtp-snapshot-page,
+  .mtp-itinerary-page,
+  .mtp-around-page{
+    padding-left:7px !important;
+    padding-right:7px !important;
+  }
+
+  /* Route text on mobile must fit rather than truncate aggressively */
+  .mtp-context-route{
+    font-size:13px !important;
+    gap:6px !important;
+  }
+
+  .mtp-context-route strong{
+    font-size:13px !important;
+    line-height:1.3 !important;
+    min-width:0 !important;
+  }
+
+  /* Keep From/To readable without forcing horizontal overflow */
+  .mtp-context-route>strong{
+    flex:1 1 120px !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+  }
+
+  .mtp-context-route>svg{
+    flex:0 0 15px !important;
+  }
+
+  /* Home planner internal horizontal spacing */
+  .planner-card .route-stack,
+  .planner-card .travel-grid,
+  .planner-card .date-grid,
+  .planner-card .traveller-grid,
+  .planner-card .comfort-grid,
+  .planner-card .review-grid,
+  .planner-card .notice,
+  .planner-card .date-help,
+  .planner-card .group-label,
+  .planner-card .add-stop,
+  .planner-card .footer-actions{
+    margin-left:5px !important;
+    margin-right:5px !important;
+  }
+
+  .planner-card .route-stack,
+  .planner-card .travel-grid,
+  .planner-card .date-grid,
+  .planner-card .traveller-grid,
+  .planner-card .comfort-grid,
+  .planner-card .review-grid{
+    width:calc(100% - 10px) !important;
+  }
+}
+
+@media(max-width:520px){
+  .page-width,
+  .header-inner{
+    width:calc(100% - 8px) !important;
+  }
+
+  .mtp-report-shell{
+    width:calc(100vw - 6px) !important;
+    margin-left:3px !important;
+    margin-right:3px !important;
+  }
+}
+/* MTP SAVED TRIPS PREMIUM THEME */
+
+/* Overlay matches premium travel UI */
+.modal-backdrop{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(61,29,16,.50),
+      rgba(4,50,46,.58)
+    ) !important;
+  backdrop-filter:blur(11px) saturate(125%) !important;
+  -webkit-backdrop-filter:blur(11px) saturate(125%) !important;
+}
+
+/* Main modal card: dark glass, not cream/white */
+.trips-card{
+  width:min(720px,92vw) !important;
+  max-height:min(76vh,760px) !important;
+  overflow:auto !important;
+  padding:22px !important;
+  border-radius:18px !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  background:
+    linear-gradient(
+      125deg,
+      rgba(105,45,16,.72) 0%,
+      rgba(48,65,47,.62) 48%,
+      rgba(0,100,92,.66) 100%
+    ) !important;
+  color:#fff !important;
+  box-shadow:0 28px 70px rgba(0,0,0,.30) !important;
+  backdrop-filter:blur(15px) saturate(125%) !important;
+  -webkit-backdrop-filter:blur(15px) saturate(125%) !important;
+}
+
+.trips-card .auth-kicker{
+  color:#79eadc !important;
+  font-weight:600 !important;
+  letter-spacing:.08em !important;
+}
+
+.trips-card h2{
+  color:#fff !important;
+  font-weight:500 !important;
+  font-size:25px !important;
+}
+
+/* Close button becomes subtle glass */
+.trips-card .modal-close{
+  background:rgba(255,255,255,.10) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+  color:#fff !important;
+  border-radius:11px !important;
+}
+
+.trips-card .modal-close:hover{
+  background:rgba(255,255,255,.16) !important;
+}
+
+/* Saved trip rows */
+.trips-list{
+  gap:9px !important;
+}
+
+.trip-row{
+  min-height:66px !important;
+  padding:7px !important;
+  border-radius:12px !important;
+  background:rgba(8,32,29,.24) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+  box-shadow:none !important;
+  backdrop-filter:blur(7px) !important;
+  -webkit-backdrop-filter:blur(7px) !important;
+}
+
+.trip-row:hover{
+  background:rgba(8,45,40,.34) !important;
+  border-color:rgba(100,230,216,.34) !important;
+}
+
+/* Main clickable trip area */
+.trip-open{
+  color:#fff !important;
+  background:transparent !important;
+  border:0 !important;
+  text-align:left !important;
+}
+
+.trip-open>span{
+  color:#fff !important;
+  font-size:15px !important;
+  font-weight:500 !important;
+  line-height:1.35 !important;
+}
+
+.trip-open small{
+  color:rgba(255,255,255,.68) !important;
+  font-size:11px !important;
+  margin-top:3px !important;
+}
+
+/* Shared badge */
+.trip-row .shared-badge,
+.trip-row .trip-shared-badge,
+.trip-row [class*="shared"]{
+  background:rgba(0,157,146,.28) !important;
+  border:1px solid rgba(99,232,218,.34) !important;
+  color:#c9fff8 !important;
+  border-radius:999px !important;
+}
+
+/* Unshare / New Link and similar owner actions */
+.trip-row button:not(.trip-open):not(.trip-delete){
+  min-height:34px !important;
+  padding:0 10px !important;
+  border-radius:9px !important;
+  background:rgba(255,255,255,.08) !important;
+  border:1px solid rgba(255,255,255,.17) !important;
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.trip-row button:not(.trip-open):not(.trip-delete):hover{
+  background:rgba(0,157,146,.32) !important;
+  border-color:rgba(99,232,218,.42) !important;
+}
+
+/* Delete: restrained rose glass */
+.trip-delete{
+  width:36px !important;
+  height:36px !important;
+  border-radius:9px !important;
+  background:rgba(154,47,68,.24) !important;
+  border:1px solid rgba(255,130,151,.22) !important;
+  color:#ffb4c0 !important;
+}
+
+.trip-delete:hover{
+  background:rgba(186,55,78,.36) !important;
+  color:#fff !important;
+}
+
+/* Loading / empty / messages */
+.trips-empty{
+  color:rgba(255,255,255,.74) !important;
+}
+
+.trips-card .auth-message{
+  background:rgba(255,180,53,.14) !important;
+  border-color:rgba(255,197,91,.24) !important;
+  color:#ffe0a2 !important;
+}
+
+/* Mobile */
+@media(max-width:650px){
+  .trips-card{
+    width:calc(100vw - 14px) !important;
+    max-height:82vh !important;
+    padding:16px !important;
+    border-radius:15px !important;
+  }
+
+  .trips-card h2{
+    font-size:21px !important;
+  }
+
+  .trip-row{
+    align-items:flex-start !important;
+    gap:6px !important;
+  }
+
+  .trip-open>span{
+    font-size:14px !important;
+  }
+}
+/* MTP AUTH PREMIUM THEME */
+
+/* Modal backdrop stays cinematic */
+.modal-backdrop{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(70,31,15,.46),
+      rgba(4,48,44,.60)
+    ) !important;
+  backdrop-filter:blur(11px) saturate(130%) !important;
+  -webkit-backdrop-filter:blur(11px) saturate(130%) !important;
+}
+
+/* Main login card */
+.auth-card{
+  width:min(460px,92vw) !important;
+  padding:24px !important;
+  border-radius:19px !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  background:
+    linear-gradient(
+      125deg,
+      rgba(108,45,16,.74) 0%,
+      rgba(51,63,47,.66) 48%,
+      rgba(0,105,96,.70) 100%
+    ) !important;
+  color:#fff !important;
+  box-shadow:0 28px 72px rgba(0,0,0,.32) !important;
+  backdrop-filter:blur(15px) saturate(125%) !important;
+  -webkit-backdrop-filter:blur(15px) saturate(125%) !important;
+}
+
+.auth-card .auth-kicker{
+  color:#79eadc !important;
+  font-weight:600 !important;
+  letter-spacing:.08em !important;
+}
+
+.auth-card h2{
+  color:#fff !important;
+  font-size:27px !important;
+  font-weight:500 !important;
+  margin-bottom:6px !important;
+}
+
+.auth-card>p{
+  color:rgba(255,255,255,.78) !important;
+  font-size:14px !important;
+  line-height:1.45 !important;
+}
+
+/* Close button */
+.auth-card .modal-close{
+  background:rgba(255,255,255,.10) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+  color:#fff !important;
+  border-radius:11px !important;
+}
+
+.auth-card .modal-close:hover{
+  background:rgba(255,255,255,.17) !important;
+}
+
+/* Email/password fields */
+.auth-field{
+  min-height:50px !important;
+  padding:0 13px !important;
+  border-radius:11px !important;
+  background:rgba(8,32,29,.24) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  color:#79eadc !important;
+  box-shadow:none !important;
+  backdrop-filter:blur(7px) !important;
+  -webkit-backdrop-filter:blur(7px) !important;
+}
+
+.auth-field:focus-within{
+  background:rgba(8,48,43,.34) !important;
+  border-color:rgba(99,232,218,.68) !important;
+  box-shadow:0 0 0 2px rgba(99,232,218,.08) !important;
+}
+
+.auth-field input{
+  color:#fff !important;
+  background:transparent !important;
+  border:0 !important;
+  outline:0 !important;
+  box-shadow:none !important;
+  font-size:14px !important;
+}
+
+.auth-field input::placeholder{
+  color:rgba(255,255,255,.66) !important;
+  opacity:1 !important;
+}
+
+/* Google button */
+.google-auth-btn{
+  min-height:48px !important;
+  border-radius:11px !important;
+  background:rgba(255,255,255,.92) !important;
+  border:1px solid rgba(255,255,255,.55) !important;
+  color:#1c2b25 !important;
+  font-weight:500 !important;
+  box-shadow:0 8px 20px rgba(0,0,0,.10) !important;
+}
+
+.google-auth-btn:hover{
+  background:#fff !important;
+  transform:translateY(-1px);
+}
+
+/* Divider */
+.auth-divider::before,
+.auth-divider::after{
+  background:rgba(255,255,255,.18) !important;
+}
+
+.auth-divider span{
+  color:rgba(255,255,255,.62) !important;
+  background:transparent !important;
+}
+
+/* Primary auth action */
+.auth-submit{
+  min-height:48px !important;
+  border-radius:11px !important;
+  background:linear-gradient(135deg,#f59b06,#ffaf18) !important;
+  border:0 !important;
+  color:#fff !important;
+  font-weight:700 !important;
+  box-shadow:0 11px 24px rgba(245,155,6,.28) !important;
+}
+
+.auth-submit:hover:not(:disabled){
+  background:linear-gradient(135deg,#ffa100,#ffb626) !important;
+  transform:translateY(-1px);
+}
+
+/* Forgot / create-account links */
+.auth-switch{
+  color:#9ff1e6 !important;
+  font-weight:500 !important;
+  background:transparent !important;
+  border:0 !important;
+}
+
+.auth-switch:hover{
+  color:#ffd16a !important;
+}
+
+/* Messages */
+.auth-message{
+  background:rgba(114,71,5,.28) !important;
+  border:1px solid rgba(255,193,62,.30) !important;
+  color:#ffe4a7 !important;
+  border-radius:10px !important;
+}
+
+/* Disabled */
+.auth-submit:disabled,
+.google-auth-btn:disabled{
+  opacity:.60 !important;
+  cursor:not-allowed !important;
+}
+
+/* Mobile */
+@media(max-width:650px){
+  .auth-card{
+    width:calc(100vw - 14px) !important;
+    padding:18px !important;
+    border-radius:15px !important;
+  }
+
+  .auth-card h2{
+    font-size:23px !important;
+  }
+
+  .auth-field,
+  .google-auth-btn,
+  .auth-submit{
+    min-height:46px !important;
+  }
+}
+/* MTP LEGAL + ABOUT PREMIUM THEME */
+
+/* ==========================================================
+   SHARED LEGAL OVERLAY / DIALOG
+   About Â· Privacy Â· Terms Â· Disclaimer Â· Contact
+   ========================================================== */
+
+.mtp-legal-overlay{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(70,31,15,.48),
+      rgba(4,48,44,.62)
+    ) !important;
+  backdrop-filter:blur(12px) saturate(130%) !important;
+  -webkit-backdrop-filter:blur(12px) saturate(130%) !important;
+}
+
+.mtp-legal-dialog{
+  width:min(980px,94vw) !important;
+  max-height:88vh !important;
+  border-radius:20px !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  background:
+    linear-gradient(
+      125deg,
+      rgba(106,45,16,.72) 0%,
+      rgba(47,64,47,.64) 48%,
+      rgba(0,104,95,.68) 100%
+    ) !important;
+  color:#fff !important;
+  box-shadow:0 30px 80px rgba(0,0,0,.34) !important;
+  backdrop-filter:blur(16px) saturate(125%) !important;
+  -webkit-backdrop-filter:blur(16px) saturate(125%) !important;
+  overflow:hidden !important;
+}
+
+.mtp-legal-header{
+  padding:17px 20px !important;
+  background:rgba(8,32,29,.22) !important;
+  border-bottom:1px solid rgba(255,255,255,.14) !important;
+  backdrop-filter:blur(8px) !important;
+}
+
+.mtp-legal-title{
+  gap:12px !important;
+}
+
+.mtp-legal-icon{
+  width:42px !important;
+  height:42px !important;
+  border-radius:11px !important;
+  background:rgba(255,255,255,.12) !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+  color:#7beadd !important;
+}
+
+.mtp-legal-title h1{
+  color:#fff !important;
+  font-size:24px !important;
+  font-weight:500 !important;
+}
+
+.mtp-legal-title small{
+  color:rgba(255,255,255,.66) !important;
+  font-size:11px !important;
+}
+
+.mtp-legal-close{
+  width:38px !important;
+  height:38px !important;
+  border-radius:10px !important;
+  background:rgba(255,255,255,.09) !important;
+  border:1px solid rgba(255,255,255,.15) !important;
+  color:#fff !important;
+}
+
+.mtp-legal-close:hover{
+  background:rgba(255,255,255,.16) !important;
+}
+
+.mtp-legal-body{
+  padding:18px !important;
+  background:transparent !important;
+  color:#fff !important;
+}
+
+/* intro is a strong premium strip */
+.mtp-legal-intro{
+  margin:0 0 14px !important;
+  padding:14px 16px !important;
+  border-radius:13px !important;
+  background:
+    linear-gradient(
+      100deg,
+      rgba(110,46,15,.76),
+      rgba(0,112,103,.68)
+    ) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  color:#fff !important;
+  font-size:14px !important;
+  line-height:1.5 !important;
+}
+
+/* Privacy / Terms / Contact / Disclaimer sections */
+.mtp-legal-section{
+  margin:0 0 10px !important;
+  padding:14px 15px !important;
+  border-radius:12px !important;
+  background:rgba(8,32,29,.20) !important;
+  border:1px solid rgba(255,255,255,.15) !important;
+  color:#fff !important;
+  box-shadow:none !important;
+  backdrop-filter:blur(7px) saturate(120%) !important;
+  -webkit-backdrop-filter:blur(7px) saturate(120%) !important;
+}
+
+.mtp-legal-section:hover{
+  background:rgba(8,45,40,.27) !important;
+  border-color:rgba(100,230,216,.28) !important;
+}
+
+.mtp-legal-section h2{
+  margin-bottom:7px !important;
+  color:#7beadd !important;
+  font-size:17px !important;
+  font-weight:500 !important;
+}
+
+.mtp-legal-section p,
+.mtp-legal-section li{
+  color:rgba(255,255,255,.82) !important;
+  font-size:13px !important;
+  line-height:1.55 !important;
+}
+
+.mtp-legal-section li::marker{
+  color:#f7a20a !important;
+}
+
+.mtp-legal-section strong{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-legal-section a,
+.mtp-legal-body a{
+  color:#95f2e7 !important;
+  text-decoration:none !important;
+}
+
+.mtp-legal-section a:hover,
+.mtp-legal-body a:hover{
+  color:#ffd16a !important;
+}
+
+
+/* ==========================================================
+   ABOUT PAGE
+   Use same premium theme, preserve current professional layout.
+   ========================================================== */
+
+.mtp-about{
+  color:#fff !important;
+}
+
+/* HERO */
+.mtp-about-hero{
+  background:
+    linear-gradient(
+      105deg,
+      rgba(110,46,15,.84) 0%,
+      rgba(65,58,36,.74) 46%,
+      rgba(0,112,103,.82) 100%
+    ) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  box-shadow:0 16px 36px rgba(0,0,0,.16) !important;
+}
+
+.mtp-about-kicker,
+.mtp-about-section-label{
+  color:#79eadc !important;
+}
+
+.mtp-about-hero h2,
+.mtp-about-hero h2 span{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-about-hero-copy>p{
+  color:rgba(255,255,255,.82) !important;
+}
+
+.mtp-about-hero-copy>p strong{
+  color:#fff !important;
+}
+
+.mtp-about-primary-cta{
+  background:linear-gradient(135deg,#f59b06,#ffaf18) !important;
+  border:0 !important;
+  color:#fff !important;
+  box-shadow:0 10px 24px rgba(245,155,6,.26) !important;
+}
+
+.mtp-about-secondary-cta{
+  background:rgba(255,255,255,.08) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  color:#fff !important;
+}
+
+/* visual core */
+.mtp-about-hero-visual{
+  background:rgba(8,32,29,.18) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+}
+
+.mtp-about-core{
+  background:rgba(0,157,146,.32) !important;
+  border:1px solid rgba(99,232,218,.36) !important;
+  color:#fff !important;
+}
+
+.mtp-about-core strong{
+  color:#fff !important;
+}
+
+.mtp-about-core span{
+  color:rgba(255,255,255,.72) !important;
+}
+
+.mtp-about-orbit{
+  background:rgba(255,255,255,.12) !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  color:#7beadd !important;
+}
+
+
+/* PROOF / DATA */
+.mtp-about-proof{
+  background:rgba(8,32,29,.20) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+}
+
+.mtp-about-proof>div{
+  border-color:rgba(255,255,255,.12) !important;
+}
+
+.mtp-about-proof strong{
+  color:#fff !important;
+}
+
+.mtp-about-proof span{
+  color:rgba(255,255,255,.68) !important;
+}
+
+
+/* SECTIONS */
+.mtp-about-section,
+.mtp-about-split,
+.mtp-about-compare,
+.mtp-about-tech,
+.mtp-about-ecosystem{
+  background:rgba(8,32,29,.18) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  color:#fff !important;
+  backdrop-filter:blur(7px) saturate(120%) !important;
+  -webkit-backdrop-filter:blur(7px) saturate(120%) !important;
+}
+
+.mtp-about-section-head h3,
+.mtp-about-split h3,
+.mtp-about-compare h3,
+.mtp-about-tech h3,
+.mtp-about-ecosystem h3{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-about-section-head>p,
+.mtp-about-split-copy p,
+.mtp-about-tech-copy p{
+  color:rgba(255,255,255,.74) !important;
+}
+
+
+/* CAPABILITY CARDS */
+.mtp-about-capability{
+  background:rgba(8,32,29,.20) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+}
+
+.mtp-about-capability>span{
+  background:rgba(255,255,255,.12) !important;
+  color:#7beadd !important;
+}
+
+.mtp-about-capability h4{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-about-capability p{
+  color:rgba(255,255,255,.70) !important;
+}
+
+
+/* PROBLEM / CHECK LIST */
+.mtp-about-problem-list>div{
+  background:rgba(255,255,255,.07) !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  color:#fff !important;
+}
+
+.mtp-about-problem-list svg{
+  color:#7beadd !important;
+}
+
+
+/* FLOW */
+.mtp-about-flow-grid article{
+  background:rgba(8,32,29,.20) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  color:#fff !important;
+}
+
+.mtp-about-flow-grid article>svg{
+  color:#7beadd !important;
+}
+
+.mtp-about-flow-grid h4{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-about-flow-grid p{
+  color:rgba(255,255,255,.70) !important;
+}
+
+.mtp-about-step{
+  background:rgba(0,157,146,.30) !important;
+  color:#c8fff8 !important;
+  border-color:rgba(99,232,218,.30) !important;
+}
+
+
+/* COMPARE */
+.mtp-about-compare-column{
+  border:1px solid rgba(255,255,255,.14) !important;
+}
+
+.mtp-about-compare-column.muted{
+  background:rgba(87,52,36,.22) !important;
+}
+
+.mtp-about-compare-column.strong{
+  background:rgba(0,157,146,.22) !important;
+  border-color:rgba(99,232,218,.28) !important;
+}
+
+.mtp-about-compare-title,
+.mtp-about-compare-column p{
+  color:#fff !important;
+}
+
+.mtp-about-compare-column svg{
+  color:#7beadd !important;
+}
+
+
+/* WHO / MODES */
+.mtp-about-chip-row span,
+.mtp-about-mode-row>div,
+.mtp-about-tools span{
+  background:rgba(8,32,29,.20) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  color:#fff !important;
+}
+
+.mtp-about-chip-row svg,
+.mtp-about-mode-row svg,
+.mtp-about-tools svg{
+  color:#7beadd !important;
+}
+
+.mtp-about-mode-row strong{
+  color:#fff !important;
+}
+
+
+/* TECH */
+.mtp-about-tech-stack>div{
+  background:rgba(8,32,29,.20) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  color:#fff !important;
+}
+
+.mtp-about-tech-stack>div>svg{
+  color:#7beadd !important;
+}
+
+.mtp-about-tech-stack strong{
+  color:#fff !important;
+}
+
+.mtp-about-tech-stack small{
+  color:rgba(255,255,255,.68) !important;
+}
+
+
+/* ECOSYSTEM */
+.mtp-about-ecosystem-grid>a{
+  background:rgba(8,32,29,.20) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  color:#fff !important;
+}
+
+.mtp-about-ecosystem-grid>a:hover{
+  background:rgba(0,157,146,.22) !important;
+  border-color:rgba(99,232,218,.34) !important;
+}
+
+.mtp-about-ecosystem-grid strong{
+  color:#fff !important;
+}
+
+.mtp-about-ecosystem-grid p{
+  color:rgba(255,255,255,.68) !important;
+}
+
+.mtp-about-ecosystem-index{
+  color:#79eadc !important;
+}
+
+
+/* FINAL CTA */
+.mtp-about-final{
+  background:
+    linear-gradient(
+      100deg,
+      rgba(108,45,16,.76),
+      rgba(0,112,103,.70)
+    ) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+  color:#fff !important;
+}
+
+.mtp-about-final h3{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-about-final p{
+  color:rgba(255,255,255,.76) !important;
+}
+
+.mtp-about-note{
+  color:rgba(255,255,255,.58) !important;
+}
+
+
+/* ==========================================================
+   MOBILE
+   Reduce edge padding, keep professional wide feel
+   ========================================================== */
+
+@media(max-width:760px){
+  .mtp-legal-dialog{
+    width:calc(100vw - 10px) !important;
+    max-height:92vh !important;
+    border-radius:14px !important;
+  }
+
+  .mtp-legal-header{
+    padding:12px !important;
+  }
+
+  .mtp-legal-body{
+    padding:9px !important;
+  }
+
+  .mtp-legal-title h1{
+    font-size:20px !important;
+  }
+
+  .mtp-legal-intro,
+  .mtp-legal-section{
+    padding:11px 12px !important;
+  }
+
+  .mtp-about-hero,
+  .mtp-about-section,
+  .mtp-about-split,
+  .mtp-about-compare,
+  .mtp-about-tech,
+  .mtp-about-ecosystem,
+  .mtp-about-final{
+    padding:12px !important;
+  }
+
+  .mtp-about-hero h2{
+    font-size:24px !important;
+  }
+
+  .mtp-about-capability-grid,
+  .mtp-about-flow-grid,
+  .mtp-about-compare-grid,
+  .mtp-about-ecosystem-grid{
+    gap:8px !important;
+  }
+}
+/* MTP LEGAL MODAL CENTERING FIX */
+
+/* Center About / Privacy / Terms / Disclaimer / Contact in viewport */
+.mtp-legal-overlay{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:220 !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  padding:14px !important;
+  overflow:hidden !important;
+}
+
+/* Keep the dialog fully visible inside the viewport */
+.mtp-legal-dialog{
+  margin:0 auto !important;
+  max-height:calc(100vh - 28px) !important;
+  overflow:hidden !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+
+/* Header remains fixed; only body scrolls */
+.mtp-legal-header{
+  flex:0 0 auto !important;
+}
+
+.mtp-legal-body{
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain !important;
+}
+
+/* Tablet/mobile: use nearly all available height, still centered */
+@media(max-width:760px){
+  .mtp-legal-overlay{
+    padding:6px !important;
+    align-items:center !important;
+    justify-content:center !important;
+  }
+
+  .mtp-legal-dialog{
+    width:calc(100vw - 12px) !important;
+    max-height:calc(100vh - 12px) !important;
+    border-radius:13px !important;
+  }
+
+  .mtp-legal-body{
+    -webkit-overflow-scrolling:touch;
+  }
+}
+/* MTP LEGAL PORTAL VIEWPORT CENTERING */
+
+/*
+  Legal modal is mounted directly under document.body via createPortal,
+  so ancestor backdrop-filter / layout can no longer shift fixed positioning.
+*/
+
+.mtp-legal-overlay{
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100dvh !important;
+  z-index:9999 !important;
+
+  display:grid !important;
+  place-items:center !important;
+
+  padding:14px !important;
+  margin:0 !important;
+  overflow:hidden !important;
+}
+
+.mtp-legal-dialog{
+  position:relative !important;
+  width:min(980px,calc(100vw - 28px)) !important;
+  max-height:calc(100dvh - 28px) !important;
+  margin:0 !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+  overflow:hidden !important;
+}
+
+.mtp-legal-body{
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain !important;
+}
+
+@media(max-width:760px){
+  .mtp-legal-overlay{
+    padding:5px !important;
+  }
+
+  .mtp-legal-dialog{
+    width:calc(100vw - 10px) !important;
+    max-height:calc(100dvh - 10px) !important;
+  }
+}
+/* MTP ABOUT VISIBILITY + WAIT THEME FINAL */
+
+/* ==========================================================
+   ABOUT: REMOVE LAST GREY / PALE SURFACES
+   ========================================================== */
+
+/* Three layers / report cards */
+.mtp-about .mtp-about-flow-grid article{
+  background:rgba(8,32,29,.24) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
+  color:#fff !important;
+  box-shadow:none !important;
+  backdrop-filter:blur(7px) saturate(120%) !important;
+  -webkit-backdrop-filter:blur(7px) saturate(120%) !important;
+}
+
+.mtp-about .mtp-about-flow-grid article:hover{
+  background:rgba(8,45,40,.32) !important;
+  border-color:rgba(99,232,218,.30) !important;
+}
+
+.mtp-about .mtp-about-flow-grid article h4{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-about .mtp-about-flow-grid article p{
+  color:rgba(255,255,255,.76) !important;
+}
+
+.mtp-about .mtp-about-flow-grid article>svg{
+  color:#7beadd !important;
+}
+
+.mtp-about .mtp-about-step{
+  background:rgba(0,157,146,.32) !important;
+  border:1px solid rgba(99,232,218,.32) !important;
+  color:#d6fff9 !important;
+}
+
+/* Ensure all capability/tool cards stay dark glass */
+.mtp-about .mtp-about-capability,
+.mtp-about .mtp-about-problem-list>div,
+.mtp-about .mtp-about-tech-stack>div,
+.mtp-about .mtp-about-mode-row>div,
+.mtp-about .mtp-about-tools span,
+.mtp-about .mtp-about-ecosystem-grid>a{
+  background:rgba(8,32,29,.22) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  color:#fff !important;
+}
+
+/* Bottom warning/note strip â€” currently washed out */
+.mtp-about .mtp-about-note{
+  display:block !important;
+  margin:12px 0 0 !important;
+  padding:11px 14px !important;
+  border-radius:11px !important;
+
+  background:rgba(116,73,7,.34) !important;
+  border:1px solid rgba(255,194,73,.34) !important;
+  color:#ffe8ad !important;
+
+  font-size:12px !important;
+  line-height:1.45 !important;
+  text-shadow:0 1px 5px rgba(0,0,0,.22);
+}
+
+.mtp-about .mtp-about-final{
+  background:
+    linear-gradient(
+      100deg,
+      rgba(111,46,15,.78),
+      rgba(0,112,103,.72)
+    ) !important;
+  border:1px solid rgba(255,255,255,.18) !important;
+}
+
+.mtp-about .mtp-about-final h3{
+  color:#fff !important;
+}
+
+.mtp-about .mtp-about-final p{
+  color:rgba(255,255,255,.78) !important;
+}
+
+
+/* ==========================================================
+   WAIT / PLANNING WINDOW
+   Match premium home theme instead of cream popup
+   ========================================================== */
+
+.mtp-planning-overlay{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(79,33,15,.54),
+      rgba(4,49,45,.64)
+    ) !important;
+  backdrop-filter:blur(11px) saturate(130%) !important;
+  -webkit-backdrop-filter:blur(11px) saturate(130%) !important;
+}
+
+/* same warm -> teal language as hero */
+.mtp-planning-box{
+  width:min(500px,92vw) !important;
+  max-width:500px !important;
+  padding:24px 25px !important;
+  border-radius:19px !important;
+
+  background:
+    linear-gradient(
+      115deg,
+      rgba(109,45,16,.90) 0%,
+      rgba(56,61,43,.86) 48%,
+      rgba(0,106,97,.88) 100%
+    ) !important;
+
+  border:1px solid rgba(255,255,255,.22) !important;
+  color:#fff !important;
+  box-shadow:0 28px 70px rgba(0,0,0,.34) !important;
+
+  backdrop-filter:blur(14px) saturate(125%) !important;
+  -webkit-backdrop-filter:blur(14px) saturate(125%) !important;
+}
+
+/* Icon */
+.mtp-planning-icon{
+  background:rgba(0,157,146,.62) !important;
+  border:1px solid rgba(99,232,218,.38) !important;
+  color:#fff !important;
+  box-shadow:0 10px 24px rgba(0,0,0,.15) !important;
+}
+
+/* Typography */
+.mtp-planning-label{
+  color:#7beadd !important;
+  font-weight:600 !important;
+  letter-spacing:.08em !important;
+}
+
+.mtp-planning-box h2{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-planning-live-copy strong{
+  color:#9ff2e7 !important;
+  font-weight:600 !important;
+}
+
+.mtp-planning-live-copy p{
+  color:rgba(255,255,255,.78) !important;
+}
+
+.mtp-planning-patience{
+  color:rgba(255,255,255,.72) !important;
+}
+
+/* Step circles */
+.mtp-planning-checks>span{
+  background:rgba(255,255,255,.10) !important;
+  border:1px solid rgba(255,255,255,.13) !important;
+  color:rgba(255,255,255,.70) !important;
+}
+
+.mtp-planning-checks>span.done{
+  background:rgba(0,157,146,.78) !important;
+  border-color:rgba(99,232,218,.48) !important;
+  color:#fff !important;
+}
+
+.mtp-planning-checks>span.active{
+  background:rgba(0,157,146,.52) !important;
+  border-color:rgba(99,232,218,.58) !important;
+  color:#fff !important;
+  box-shadow:0 0 0 5px rgba(0,157,146,.14) !important;
+}
+
+/* Progress line */
+.mtp-planning-progress{
+  background:rgba(255,255,255,.14) !important;
+}
+
+.mtp-planning-progress>span{
+  background:linear-gradient(
+    90deg,
+    #00a99d 0%,
+    #16c1ae 62%,
+    #f5a10a 100%
+  ) !important;
+}
+
+/* Keep it compact on mobile */
+@media(max-width:650px){
+  .mtp-planning-box{
+    width:calc(100vw - 14px) !important;
+    max-width:none !important;
+    padding:20px 18px !important;
+    border-radius:15px !important;
+  }
+
+  .mtp-about .mtp-about-note{
+    margin-left:0 !important;
+    margin-right:0 !important;
+  }
+}
+/* MTP ABOUT FLOW GREY FINAL FIX */
+
+/*
+  The remaining grey is on the FLOW GRID CONTAINER itself,
+  not only the three child cards.
+*/
+
+.mtp-about .mtp-about-flow-grid{
+  background:transparent !important;
+  background-image:none !important;
+  border:0 !important;
+  box-shadow:none !important;
+  overflow:visible !important;
+  gap:10px !important;
+}
+
+/* Make the three report cards independent dark-glass cards */
+.mtp-about .mtp-about-flow-grid > article{
+  background:rgba(8,32,29,.24) !important;
+  background-image:none !important;
+
+  border:1px solid rgba(255,255,255,.16) !important;
+  border-radius:12px !important;
+
+  color:#fff !important;
+  box-shadow:none !important;
+
+  backdrop-filter:blur(7px) saturate(120%) !important;
+  -webkit-backdrop-filter:blur(7px) saturate(120%) !important;
+}
+
+/* Remove any old separators/pseudo backgrounds */
+.mtp-about .mtp-about-flow-grid > article::before,
+.mtp-about .mtp-about-flow-grid > article::after,
+.mtp-about .mtp-about-flow-grid::before,
+.mtp-about .mtp-about-flow-grid::after{
+  background:none !important;
+  background-image:none !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+
+/* Typography */
+.mtp-about .mtp-about-flow-grid > article h4{
+  color:#fff !important;
+  font-weight:500 !important;
+}
+
+.mtp-about .mtp-about-flow-grid > article p{
+  color:rgba(255,255,255,.76) !important;
+}
+
+.mtp-about .mtp-about-flow-grid > article > svg{
+  color:#7beadd !important;
+}
+
+.mtp-about .mtp-about-flow-grid .mtp-about-step{
+  background:rgba(0,157,146,.30) !important;
+  border:1px solid rgba(99,232,218,.32) !important;
+  color:#d9fff9 !important;
+}
+
+/* Mobile keeps the cards compact */
+@media(max-width:760px){
+  .mtp-about .mtp-about-flow-grid{
+    gap:8px !important;
+  }
+
+  .mtp-about .mtp-about-flow-grid > article{
+    padding:12px !important;
+  }
+}

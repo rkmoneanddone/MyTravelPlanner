@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { X, MapPin, ShieldCheck, FileText, Info, Mail, TriangleAlert, Compass, Sparkles, Route, Clock3, Users, Plane, Train, Car, Hotel, Utensils, Share2, Save, BrainCircuit, Layers3, CheckCircle2, ArrowRight, Briefcase, Landmark, Baby, UserRound, Globe2, Database, MapPinned, Zap, Copy, FileDown } from "lucide-react";
 
 export type LegalPage =
@@ -97,7 +98,7 @@ const pages: Record<LegalPage, {
       {
         heading: "Built for quick reference",
         paragraphs: [
-          <>MyTravelPlanner is being shaped as a fast decision layer between raw travel data and the traveller. It is meant to answer â€œwhat makes sense for this trip?â€ before the user gets lost in booking screens, maps, blogs and scattered search results.</>,
+          <>MyTravelPlanner is being shaped as a fast decision layer between raw travel data and the traveller. It is meant to answer “what makes sense for this trip?” before the user gets lost in booking screens, maps, blogs and scattered search results.</>,
           <>Our ambition is simple: build one of the most useful AI travel planning experiences for people who prefer practical guidance over noise.</>
         ]
       },
@@ -106,15 +107,15 @@ const pages: Record<LegalPage, {
         paragraphs: [
           <>
             <a href="https://quickstories.in/" target="_blank" rel="noreferrer">QuickStories</a>
-            {" â€” short-form digital storytelling."}
+            {" — short-form digital storytelling."}
           </>,
           <>
             <a href="https://parentsboard.in/" target="_blank" rel="noreferrer">ParentsBoard</a>
-            {" â€” school and parent information platform."}
+            {" — school and parent information platform."}
           </>,
           <>
             <a href="https://apps.microsoft.com/detail/9n11m525d0m9?hl=en-US&gl=IN" target="_blank" rel="noreferrer">Lucky Dangle for Windows</a>
-            {" â€” lightweight Windows desktop charm application."}
+            {" — lightweight Windows desktop charm application."}
           </>
         ]
       },
@@ -351,7 +352,7 @@ function AboutUsPage() {
     {
       icon: <Users size={22}/>,
       title: "Traveller-aware planning",
-      text: "Families, children, seniors and larger groups change what is realistic â€” the planner accounts for that."
+      text: "Families, children, seniors and larger groups change what is realistic — the planner accounts for that."
     },
     {
       icon: <Clock3 size={22}/>,
@@ -541,7 +542,7 @@ function AboutUsPage() {
             <span className="mtp-about-step">03</span>
             <MapPinned size={23}/>
             <h4>Around Your Trip</h4>
-            <p>Useful nearby context: stay, food, pilgrimage and places to visit â€” only when needed.</p>
+            <p>Useful nearby context: stay, food, pilgrimage and places to visit — only when needed.</p>
           </article>
         </div>
       </section>
@@ -702,7 +703,7 @@ export function LegalPageModal({
 
   const content = pages[page];
 
-  return (
+  return createPortal(
     <div
       className="mtp-legal-overlay"
       role="presentation"
@@ -763,7 +764,8 @@ export function LegalPageModal({
           )}
         </div>
       </article>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -798,7 +800,7 @@ export function SiteFooter({
         </p>
 
         <small className="mtp-footer-copy">
-          Â© {currentYear} MyTravelPlanner. All rights reserved.
+          © {currentYear} MyTravelPlanner. All rights reserved.
         </small>
       </div>
     </footer>
