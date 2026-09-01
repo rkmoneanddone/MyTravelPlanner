@@ -233,6 +233,150 @@ function costEstimate(input: TripRequest, legs: RouteLeg[]) {
   };
 }
 
+function addDateDays(value: string | null | undefined, offset: number) {
+  if (!value) return null;
+  const date = new Date(`${value}T00:00:00Z`);
+  if (!Number.isFinite(date.getTime())) return null;
+  date.setUTCDate(date.getUTCDate() + offset);
+  return date.toISOString().slice(0, 10);
+}
+
+function buildDeterministicPlan(
+  input: TripRequest,
+  legs: RouteLeg[],
+  rules: any,
+  recommendation: any,
+) {
+  const facts = travellerFacts(input);
+  const resolvedMode = String(recommendation?.recommendedMode || input.travelMode);
+  const roadBased =
+    resolvedMode === "Car" ||
+    resolvedMode.includes("Tempo") ||
+    resolvedMode.includes("minibus");
+
+  const visitMinutes =
+    input.visitMinutes?.length
+      ? input.visitMinutes
+      : input.destinations.map(() => 120);
+
+  const warnings: string[] = [];
+
+  if (!roadBased) {
+    warnings.push(
+      "Confirm the exact train/flight schedule, fare and seat availability before booking.",
+    );
+  }
+
+  const days = input.destinations.map((destination, index) => {
+    const leg = legs[index];
+    const ruleLeg = rules?.routeLegs?.[index];
+    const from = index === 0 ? input.origin : input.destinations[index - 1];
+    const practicalRoadMinutes =
+      typeof ruleLeg?.practicalMinutes === "number"
+        ? ruleLeg.practicalMinutes
+        : leg?.durationMinutes ?? null;
+
+    const items: any[] = [
+      {
+        time: index === 0 ? input.startTime || "Start" : "Morning",
+        type: "travel",
+        title: `${resolvedMode}: ${from} to ${destination}`,
+        durationMinutes: roadBased ? practicalRoadMinutes : null,
+        note: roadBased
+          ? practicalRoadMinutes
+            ? `Allow about ${formatMinutes(practicalRoadMinutes)} including planned road breaks.`
+            : "Road duration could not be verified; confirm before departure."
+          : `Use ${resolvedMode}. The Google road figure is only a comparison, not the actual ${input.travelMode} duration.`,
+      },
+    ];
+
+    if (
+      roadBased &&
+      input.facilities?.restStops !== false &&
+      (ruleLeg?.recommendedBreaks ?? 0) > 0
+    ) {
+      items.push({
+        time: "During travel",
+        type: "rest",
+        title: "Washroom / stretch / hydration breaks",
+        durationMinutes:
+          (ruleLeg.recommendedBreaks ?? 0) *
+          (rules?.breakDurationMinutes ?? 20),
+        note: `${ruleLeg.recommendedBreaks} planned break(s); adjust to children/senior needs.`,
+      });
+    }
+
+    if (input.facilities?.visitBuffer !== false) {
+      items.push({
+        time: "On arrival",
+        type: "ready",
+        title: "Freshen up / get ready",
+        durationMinutes: rules?.gettingReadyMinutes ?? 50,
+        note: "Arrival, washroom, luggage and getting-ready buffer.",
+      });
+    }
+
+    if (input.facilities?.meals !== false) {
+      items.push({
+        time: "Before visit",
+        type: "meal",
+        title: "Meal / hydration break",
+        durationMinutes: rules?.mealMinutes ?? 45,
+        note: "Keep the meal timing flexible around the actual arrival.",
+      });
+    }
+
+    items.push({
+      time: "After arrival buffer",
+      type: "visit",
+      title:
+        (input.tripPurpose ?? "leisure") === "pilgrimage"
+          ? `Darshan / visit: ${destination}`
+          : `Visit / purpose activity: ${destination}`,
+      durationMinutes: visitMinutes[index] ?? 120,
+      note:
+        (input.tripPurpose ?? "leisure") === "pilgrimage"
+          ? "Confirm official darshan/opening timings and queue rules before travel."
+          : "Keep this block aligned with the actual purpose of the trip.",
+    });
+
+    const dayWarnings: string[] = [];
+    if (
+      roadBased &&
+      practicalRoadMinutes &&
+      practicalRoadMinutes > (rules?.maxTravelPerDay ?? 480)
+    ) {
+      dayWarnings.push(
+        "This road leg exceeds the recommended comfortable travel load for this group; plan an overnight halt or split the leg.",
+      );
+    }
+
+    return {
+      day: index + 1,
+      date: addDateDays(input.startDate, index),
+      title: `${from} to ${destination}`,
+      load: dayWarnings.length > 0 ? "heavy" : "balanced",
+      items,
+      stay: input.facilities?.stay === false ? null : destination,
+      warnings: dayWarnings,
+    };
+  });
+
+  return {
+    title: `${input.origin} to ${input.destinations.join(" to ")}`,
+    summary: {
+      days: diffDays(input.startDate, input.endDate) ?? Math.max(1, days.length),
+      comfort: input.comfortMode,
+      travellerNote: `${facts.totalPeople} travellers`,
+      notes: [
+        `Recommended arrangement: ${resolvedMode}.`,
+        "Deterministic itinerary used because the AI optimiser was unavailable or could not be parsed.",
+      ],
+    },
+    days,
+    warnings,
+  };
+}
 function extractResponseText(data: any): string {
   if (typeof data?.output_text === "string") return data.output_text;
   const chunks: string[] = [];
@@ -287,23 +431,49 @@ Deno.serve(async (req: Request) => {
     if (!input.origin || !Array.isArray(input.destinations) || input.destinations.filter(Boolean).length === 0) return jsonResponse({ error: "Origin and at least one destination are required." }, 400);
     input.destinations = input.destinations.filter(Boolean);
     input.tripPurpose = input.tripPurpose ?? "leisure";
+
+    const requestFacts = travellerFacts(input);
+    if (requestFacts.totalPeople < 1) {
+      return jsonResponse({ error: "At least one traveller is required." }, 400);
+    }
+
+    if (
+      input.startDate &&
+      input.endDate &&
+      diffDays(input.startDate, input.endDate) === null
+    ) {
+      return jsonResponse(
+        { error: "End date must be the same as or later than the start date." },
+        400,
+      );
+    }
     const mapsKey = Deno.env.get("GOOGLE_MAPS_API_KEY");
     const openAiKey = Deno.env.get("OPENAI_API_KEY");
     const points = [input.origin, ...input.destinations];
     const legs: RouteLeg[] = [];
-    const shouldUseRoadRoutes = input.travelMode === "car" || input.travelMode === "mixed";
+    // Google road distance/time is useful as a comparator for every mode.
+    // It is not treated as train or flight duration.
     for (let i = 0; i < points.length - 1; i++) {
-      if (mapsKey && shouldUseRoadRoutes) legs.push(await routeLeg(points[i], points[i + 1], mapsKey));
+      if (mapsKey) legs.push(await routeLeg(points[i], points[i + 1], mapsKey));
       else legs.push({ from: points[i], to: points[i + 1], distanceKm: null, durationMinutes: null, basis: "not_applicable" });
     }
     const rules = deterministicRules(input, legs);
     const recommendation = buildDeterministicRecommendation(input, legs, rules);
-    const costs = costEstimate(input, legs);
+    const costs =
+      input.facilities?.cost === false
+        ? null
+        : costEstimate(input, legs);
+    const fallbackPlan = buildDeterministicPlan(
+      input,
+      legs,
+      rules,
+      recommendation,
+    );
     const facts = travellerFacts(input);
     const roadMinutes = legs.reduce((sum, leg) => sum + (leg.durationMinutes ?? 0), 0);
     const complexity = input.destinations.length + (input.travelMode !== "car" ? 2 : 0) + (facts.seniors > 0 ? 1 : 0) + (facts.c05 + facts.c612 > 0 ? 1 : 0) + (facts.totalPeople >= 7 ? 1 : 0) + (input.tripPurpose === "pilgrimage" ? 1 : 0) + (roadMinutes > 480 ? 1 : 0) + (input.endDate ? 1 : 0);
     const useAi = Boolean(openAiKey) && (input.forceAi === true || complexity >= 3);
-    if (!useAi) return jsonResponse({ source: "rules", aiUsed: false, routeData: legs, rules, recommendation, costEstimate: costs, plan: null });
+    if (!useAi) return jsonResponse({ source: "rules", aiUsed: false, routeData: legs, rules, recommendation, costEstimate: costs, plan: fallbackPlan });
     const visitMinutes = input.visitMinutes?.length ? input.visitMinutes : input.destinations.map(() => 120);
     const prompt = buildTravelPlannerPrompt({
       input,
@@ -321,17 +491,18 @@ Deno.serve(async (req: Request) => {
     });
     if (!aiResponse.ok) {
       console.error("AI optimiser failed", aiResponse.status, await aiResponse.text());
-      return jsonResponse({ source: "rules", aiUsed: false, warning: "AI optimiser unavailable; deterministic recommendation and verified route facts are still available.", routeData: legs, rules, recommendation, costEstimate: costs, plan: null });
+      return jsonResponse({ source: "rules", aiUsed: false, warning: "AI optimiser unavailable; showing the deterministic itinerary with verified route facts.", routeData: legs, rules, recommendation, costEstimate: costs, plan: fallbackPlan });
     }
     const aiData = await aiResponse.json();
 
     const text = extractResponseText(aiData);
-    const plan = parseAiJson(text);
+    const parsedPlan = parseAiJson(text);
+    const plan = parsedPlan || fallbackPlan;
 
     const aiDebug = {
       promptVersion: PLANNER_PROMPT_VERSION,
       httpStatus: aiResponse.status,
-      parsed: Boolean(plan),
+      parsed: Boolean(parsedPlan),
       responseTextLength: text.length,
       outputStatus: aiData?.status ?? null,
       incompleteReason:
@@ -345,8 +516,8 @@ Deno.serve(async (req: Request) => {
       JSON.stringify(aiDebug),
     );
     return jsonResponse({
-      source: plan ? "ai" : "rules",
-      aiUsed: Boolean(plan),
+      source: parsedPlan ? "ai" : "rules",
+      aiUsed: Boolean(parsedPlan),
       routeData: legs,
       rules,
       recommendation,
