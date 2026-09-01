@@ -137,13 +137,44 @@ function buildDeterministicRecommendation(input: TripRequest, legs: RouteLeg[], 
   if (c05 + c612 > 0) reasons.push("Children make meal, toilet and stretch buffers important; raw map time should not be treated as door-to-door time.");
   if (purpose === "pilgrimage") reasons.push("Protect arrival energy for freshening up, darshan and possible queues instead of planning only around transport time.");
   if (roadMinutes > 600) reasons.push("This is a long road journey; practical family travel will be materially longer than pure driving time and may need an overnight halt.");
+  let resolvedMode: string = input.travelMode;
   let headline = "Use the selected travel mode with practical buffers";
-  if (input.travelMode === "car") headline = totalPeople >= 7 ? "Road trip is practical only with group-sized transport" : "Car is workable with planned breaks";
-  if (input.travelMode === "mixed") headline = "Use road travel only for the parts where it adds convenience";
-  if (input.travelMode === "train") headline = "Train is the selected long-distance mode; use local road transfer at each end";
-  if (input.travelMode === "flight") headline = "Flight is the selected long-distance mode; allow airport and local-transfer buffers";
+
+  if (input.travelMode === "car") {
+    resolvedMode = totalPeople >= 7 ? "Tempo traveller / minibus" : "Car";
+    headline = totalPeople >= 7
+      ? "Use group-sized road transport with planned breaks"
+      : "Car is workable with planned breaks";
+  }
+
+  if (input.travelMode === "mixed") {
+    if (roadMinutes > 900) {
+      resolvedMode = "Flight + local cab";
+      headline = "Use a flight for the long-distance leg and road transfer at each end";
+    } else if (roadMinutes > 480) {
+      resolvedMode = "Train + local cab";
+      headline = "Use rail for the long-distance leg and local road transfer at each end";
+    } else if (totalPeople >= 7) {
+      resolvedMode = "Tempo traveller / minibus";
+      headline = "A single group road vehicle is simpler than forcing multiple modes";
+    } else {
+      resolvedMode = "Car";
+      headline = "A direct road journey is simpler than combining transport modes";
+    }
+  }
+
+  if (input.travelMode === "train") {
+    resolvedMode = "Train + local cab";
+    headline = "Use train for the long-distance leg with local road transfer at each end";
+  }
+
+  if (input.travelMode === "flight") {
+    resolvedMode = "Flight + local cab";
+    headline = "Use flight for the long-distance leg with airport and local-transfer buffers";
+  }
+
   return {
-    recommendedMode: input.travelMode,
+    recommendedMode: resolvedMode,
     headline,
     confidence: input.travelMode === "car" && roadMinutes > 0 ? "high" : "planning",
     travellerFit: { totalPeople, seatsRequired, infantsWithoutSeatAssumed: c05, vehicleAdvice: rules.vehicleAdvice },

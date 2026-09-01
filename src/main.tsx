@@ -86,8 +86,15 @@ type SavedTrip = {
   end_date: string | null;
   start_time: string | null;
   travel_mode: Mode | null;
-  traveller_config: { adults?: number; children?: number; seniors?: number } | null;
+  traveller_config: {
+    adults?: number;
+    children?: number;
+    children0to5?: number;
+    children6to12?: number;
+    seniors?: number;
+  } | null;
   comfort_mode: Style | null;
+  trip_input: TripState | null;
   itinerary: any;
   estimated_cost: any;
   created_at: string;
@@ -141,6 +148,7 @@ function App() {
   const [userEmail, setUserEmail] = React.useState<string | null>(null);
   const [userId, setUserId] = React.useState<string | null>(null);
   const [saveState, setSaveState] = React.useState("");
+  const [activeSavedTripId, setActiveSavedTripId] = React.useState<string | null>(null);
 
   // Restore an unfinished trip after an OAuth redirect.
   React.useEffect(()=>{
@@ -218,6 +226,7 @@ function App() {
     setRecommendation(null);
     setCostEstimate(null);
     setGenerationWarning("");
+    setActiveSavedTripId(null);
   };
 
   const localPlan = () => {
@@ -353,6 +362,7 @@ function App() {
           tripPurpose: trip.purpose,
           comfortMode: trip.style,
           facilities: trip.facilities,
+          forceAi: true,
         },
       });
 
@@ -386,7 +396,7 @@ function App() {
 
     setSaveState("Saving...");
 
-    const { error } = await supabase.from("trips").insert({
+    const tripRecord = {
       user_id: userId,
       title: `${trip.origin} to ${trip.destinations.join(" to ")}`,
       origin: trip.origin,
@@ -405,14 +415,37 @@ function App() {
       trip_input: trip,
       itinerary: plan,
       estimated_cost: costEstimate ?? plan?.costEstimate ?? null,
-    });
+    };
 
-    if (error) {
-      setSaveState(error.message);
+    let saveError = null;
+
+    if (activeSavedTripId) {
+      const { error } = await supabase
+        .from("trips")
+        .update(tripRecord)
+        .eq("id", activeSavedTripId);
+
+      saveError = error;
+    } else {
+      const { data, error } = await supabase
+        .from("trips")
+        .insert(tripRecord)
+        .select("id")
+        .single();
+
+      saveError = error;
+
+      if (!error && data?.id) {
+        setActiveSavedTripId(data.id);
+      }
+    }
+
+    if (saveError) {
+      setSaveState(saveError.message);
       return;
     }
 
-    setSaveState("Saved");
+    setSaveState(activeSavedTripId ? "Updated" : "Saved");
     setTimeout(() => setSaveState(""), 2000);
   };
 
@@ -442,6 +475,7 @@ function App() {
     setPlan(saved.itinerary || null);
     setGenerated(Boolean(saved.itinerary));
     setStep(saved.itinerary ? 4 : 1);
+    setActiveSavedTripId(saved.id);
     setTripsOpen(false);
   };
 
@@ -517,13 +551,15 @@ function App() {
               {step === 4 && <ReviewStep trip={trip} onBack={back} onGenerate={generate} generating={generating}/>}
             </section>
 
-            <p className="helper">Planning works without login. Login enables AI optimisation, route data and saved trips.</p>
+            <p className="helper">Build your trip details freely. Login is required when you generate, optimise or save a travel plan.</p>
           </>
         ) : (
           <Result
             trip={trip}
             plan={plan}
             routeData={routeData}
+            rules={rules}
+            costEstimate={costEstimate}
             source={generationSource}
             warning={generationWarning}
             generating={generating}
@@ -758,12 +794,12 @@ function ComfortStep({trip,updateTrip,onBack,onNext}:{trip:TripState;updateTrip:
       <div className="group-label">Include in my plan</div>
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:"8px"}}>
-        {[
+        {([
           ["stay","Stay",<Hotel size={18}/>],
           ["meals","Meals",<UtensilsCrossed size={18}/>],
           ["restStops","Rest stops",<Coffee size={18}/>],
           ["visitBuffer","Ready / visit buffer",<Clock3 size={18}/>]
-        ].map(([key,label,icon])=>(
+        ] as Array<[keyof TripState["facilities"], string, React.ReactNode]>).map(([key,label,icon])=>(
           <button
             key={key}
             className={`comfort-option facility-compact ${trip.facilities[key as keyof typeof trip.facilities]?"active":""}`}
@@ -797,9 +833,9 @@ function ReviewStep({trip,onBack,onGenerate,generating}:{trip:TripState;onBack:(
   return (
     <div className="step-content">
       <div className="review-grid">
-        <ReviewCard color="blue" icon={<Route size={20}/>} label="ROUTE" value={`${trip.origin} â†’ ${trip.destinations.join(" â†’ ")}`}/>
+        <ReviewCard color="blue" icon={<Route size={20}/>} label="ROUTE" value={`${trip.origin} -> ${trip.destinations.join(" -> ")}`}/>
         <ReviewCard color="green" icon={<Car size={20}/>} label="TRAVEL" value={titleCase(trip.mode)}/>
-        <ReviewCard color="orange" icon={<UsersRound size={20}/>} label="TRAVELLERS" value={`${trip.adults+trip.children0to5+trip.children6to12+trip.seniors} people · ${trip.adults+trip.children6to12+trip.seniors} seats`}/>
+        <ReviewCard color="orange" icon={<UsersRound size={20}/>} label="TRAVELLERS" value={`${trip.adults+trip.children0to5+trip.children6to12+trip.seniors} people | ${trip.adults+trip.children6to12+trip.seniors} seats`}/>
         <ReviewCard
           color="green"
           icon={<MapPinned size={20}/>}
@@ -2409,7 +2445,7 @@ function MyTripsModal({open,onClose,onOpenTrip}:{open:boolean;onClose:()=>void;o
             <div className="trip-row" key={t.id}>
               <button className="trip-open" onClick={()=>onOpenTrip(t)}>
                 <span>{t.title || t.origin || "Saved trip"}</span>
-                <small>{t.start_date || "No date"} Â· {t.travel_mode || "Travel"}</small>
+                <small>{t.start_date || "No date"} | {t.travel_mode || "Travel"}</small>
               </button>
               <button className="trip-delete" onClick={()=>remove(t.id)}><Trash2 size={16}/></button>
             </div>
@@ -2613,7 +2649,7 @@ function Footer({back,onBack,nextText,onNext,disabled}:{back?:boolean;onBack?:()
 }
 
 function Cost({label,value}:{label:string;value:any}) {
-  return <div className="cost-item"><span>{label}</span><strong>{value || "â€”"}</strong></div>
+  return <div className="cost-item"><span>{label}</span><strong>{value || "—"}</strong></div>
 }
 
 function titleCase(value:string){return value.charAt(0).toUpperCase()+value.slice(1)}
@@ -2622,14 +2658,14 @@ function formatMinutes(minutes:number){const h=Math.floor(minutes/60);const m=mi
 function buildShareText(trip:TripState,plan:any,routeData:any[]){
   const lines=[
     "MyTravelPlanner",
-    `${trip.origin} â†’ ${trip.destinations.join(" â†’ ")}`,
-    `${titleCase(trip.style)} Â· ${trip.adults+trip.children0to5+trip.children6to12+trip.seniors} travellers Â· ${titleCase(trip.mode)}`,
+    `${trip.origin} → ${trip.destinations.join(" → ")}`,
+    `${titleCase(trip.style)} · ${trip.adults+trip.children0to5+trip.children6to12+trip.seniors} travellers · ${titleCase(trip.mode)}`,
     "",
   ];
 
   if(routeData.length){
     for(const leg of routeData){
-      lines.push(`${leg.from} â†’ ${leg.to}: ${leg.distanceKm!=null?`${leg.distanceKm} km`:""} ${leg.durationMinutes!=null?formatMinutes(leg.durationMinutes):""}`.trim());
+      lines.push(`${leg.from} → ${leg.to}: ${leg.distanceKm!=null?`${leg.distanceKm} km`:""} ${leg.durationMinutes!=null?formatMinutes(leg.durationMinutes):""}`.trim());
     }
     lines.push("");
   }

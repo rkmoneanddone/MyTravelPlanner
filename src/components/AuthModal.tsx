@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { Mail, LockKeyhole, X, LogIn, UserPlus } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
@@ -6,6 +6,8 @@ type Props = {
   open: boolean;
   onClose: () => void;
 };
+
+type AuthMode = "login" | "signup" | "forgot" | "reset";
 
 function GoogleIcon() {
   return (
@@ -19,13 +21,30 @@ function GoogleIcon() {
 }
 
 export function AuthModal({ open, onClose }: Props) {
-  const [mode, setMode] = React.useState<"login" | "signup">("login");
+  const [mode, setMode] = React.useState<AuthMode>("login");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [message, setMessage] = React.useState("");
 
-  if (!open) return null;
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("reset-password") === "1") {
+      setMode("reset");
+      setMessage("");
+      setPassword("");
+    }
+
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setMode("reset");
+        setMessage("");
+        setPassword("");
+      }
+    });
+
+    return () => data.subscription.unsubscribe();
+  }, []);
 
   const googleLogin = async () => {
     setBusy(true);
@@ -43,6 +62,72 @@ export function AuthModal({ open, onClose }: Props) {
   };
 
   const submit = async () => {
+    if (mode === "reset") {
+      if (!password || password.length < 6) {
+        setMessage("Enter a new password with at least 6 characters.");
+        return;
+      }
+
+      setBusy(true);
+      setMessage("");
+
+      try {
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete("reset-password");
+        window.history.replaceState(
+          {},
+          "",
+          cleanUrl.pathname + cleanUrl.search + cleanUrl.hash
+        );
+
+        setMessage("Password updated successfully.");
+        setPassword("");
+
+        window.setTimeout(() => {
+          setMode("login");
+          onClose();
+        }, 900);
+      } catch (err) {
+        setMessage(
+          err instanceof Error ? err.message : "Could not update password."
+        );
+      } finally {
+        setBusy(false);
+      }
+
+      return;
+    }
+
+    if (mode === "forgot") {
+      if (!email) {
+        setMessage("Enter your email address.");
+        return;
+      }
+
+      setBusy(true);
+      setMessage("");
+
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/?reset-password=1`,
+        });
+
+        if (error) throw error;
+        setMessage("Password reset link sent. Check your email.");
+      } catch (err) {
+        setMessage(
+          err instanceof Error ? err.message : "Could not send reset link."
+        );
+      } finally {
+        setBusy(false);
+      }
+
+      return;
+    }
+
     if (!email || !password) {
       setMessage("Enter your email and password.");
       return;
@@ -53,13 +138,18 @@ export function AuthModal({ open, onClose }: Props) {
 
     try {
       if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
         if (error) throw error;
         onClose();
       } else {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        setMessage("Account created. Check your email if confirmation is enabled.");
+        setMessage(
+          "Account created. Check your email if confirmation is enabled."
+        );
       }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Something went wrong.");
@@ -68,44 +158,130 @@ export function AuthModal({ open, onClose }: Props) {
     }
   };
 
+  if (!open && mode !== "reset") return null;
+
+  const isReset = mode === "reset";
+
   return (
-    <div className="modal-backdrop" onMouseDown={onClose}>
+    <div
+      className="modal-backdrop"
+      onMouseDown={isReset ? undefined : onClose}
+    >
       <div className="auth-card" onMouseDown={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose} aria-label="Close"><X size={19}/></button>
+        {!isReset && (
+          <button
+            className="modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <X size={19}/>
+          </button>
+        )}
 
         <span className="auth-kicker">MYTRAVELPLANNER</span>
-        <h2>{mode === "login" ? "Welcome back" : "Create your account"}</h2>
-        <p>{mode === "login" ? "Login to use AI planning and save trips." : "Create an account to save and reopen your trips."}</p>
 
-        <button className="google-auth-btn" disabled={busy} onClick={googleLogin}>
-          <GoogleIcon /> Continue with Google
-        </button>
+        <h2>
+          {mode === "login"
+            ? "Welcome back"
+            : mode === "signup"
+              ? "Create your account"
+              : mode === "forgot"
+                ? "Reset your password"
+                : "Choose a new password"}
+        </h2>
 
-        <div className="auth-divider"><span>or use email</span></div>
+        <p>
+          {mode === "login"
+            ? "Login to generate, optimise and save trips."
+            : mode === "signup"
+              ? "Create an account to generate, save and reopen your trips."
+              : mode === "forgot"
+                ? "We will email you a secure password reset link."
+                : "Enter the new password you want to use for this account."}
+        </p>
 
-        <label className="auth-field">
-          <Mail size={18}/>
-          <input type="email" placeholder="Email address" value={email} onChange={(e)=>setEmail(e.target.value)}/>
-        </label>
+        {(mode === "login" || mode === "signup") && (
+          <>
+            <button
+              className="google-auth-btn"
+              disabled={busy}
+              onClick={googleLogin}
+            >
+              <GoogleIcon /> Continue with Google
+            </button>
 
-        <label className="auth-field">
-          <LockKeyhole size={18}/>
-          <input type="password" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)}/>
-        </label>
+            <div className="auth-divider">
+              <span>or use email</span>
+            </div>
+          </>
+        )}
+
+        {mode !== "reset" && (
+          <label className="auth-field">
+            <Mail size={18}/>
+            <input
+              type="email"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </label>
+        )}
+
+        {mode !== "forgot" && (
+          <label className="auth-field">
+            <LockKeyhole size={18}/>
+            <input
+              type="password"
+              placeholder={mode === "reset" ? "New password" : "Password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </label>
+        )}
 
         {message && <div className="auth-message">{message}</div>}
 
         <button className="auth-submit" disabled={busy} onClick={submit}>
-          {mode === "login" ? <LogIn size={18}/> : <UserPlus size={18}/>}
-          {busy ? "Please wait..." : mode === "login" ? "Login" : "Create account"}
+          {mode === "signup"
+            ? <UserPlus size={18}/>
+            : <LogIn size={18}/>}
+          {busy
+            ? "Please wait..."
+            : mode === "login"
+              ? "Login"
+              : mode === "signup"
+                ? "Create account"
+                : mode === "forgot"
+                  ? "Send reset link"
+                  : "Update password"}
         </button>
 
-        <button className="auth-switch" onClick={()=>{
-          setMode(mode === "login" ? "signup" : "login");
-          setMessage("");
-        }}>
-          {mode === "login" ? "New here? Create account" : "Already have an account? Login"}
-        </button>
+        {mode === "login" && (
+          <button
+            className="auth-switch"
+            onClick={() => {
+              setMode("forgot");
+              setMessage("");
+            }}
+          >
+            Forgot password?
+          </button>
+        )}
+
+        {mode !== "reset" && (
+          <button
+            className="auth-switch"
+            onClick={() => {
+              setMode(mode === "login" ? "signup" : "login");
+              setMessage("");
+            }}
+          >
+            {mode === "login"
+              ? "New here? Create account"
+              : "Back to login"}
+          </button>
+        )}
       </div>
     </div>
   );
