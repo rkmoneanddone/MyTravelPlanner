@@ -12,7 +12,9 @@ import {
 } from "lucide-react";
 import "./styles.css";
 import { AuthModal } from "./components/AuthModal";
+import { LegalPageModal, SiteFooter, type LegalPage } from "./components/LegalPages";
 import { supabase } from "./lib/supabase";
+import { AppErrorBoundary } from "./components/AppErrorBoundary";
 
 type NearbyKind = "hotel" | "restaurant" | "pilgrimage" | "attraction";
 
@@ -98,6 +100,28 @@ type SavedTrip = {
   itinerary: any;
   estimated_cost: any;
   created_at: string;
+  is_shared?: boolean;
+  share_token?: string | null;
+  copied_from?: string | null;
+};
+
+type SharedTripPayload = {
+  id: string;
+  is_owner: boolean;
+  title: string | null;
+  origin: string | null;
+  destinations: string[];
+  start_date: string | null;
+  end_date: string | null;
+  start_time: string | null;
+  travel_mode: Mode | null;
+  traveller_config: SavedTrip["traveller_config"];
+  comfort_mode: Style | null;
+  trip_input: TripState | null;
+  itinerary: any;
+  estimated_cost: any;
+  created_at: string;
+  updated_at: string;
 };
 
 // Temporary auth-resume state.
@@ -106,6 +130,7 @@ type SavedTrip = {
 const PENDING_TRIP_KEY = "mtp.pendingTrip";
 const PENDING_STEP_KEY = "mtp.pendingStep";
 const PENDING_GENERATE_KEY = "mtp.pendingGenerate";
+const PENDING_SHARED_COPY_KEY = "mtp.pendingSharedCopy";
 
 const initialTrip: TripState = {
   origin: "",
@@ -131,6 +156,7 @@ const initialTrip: TripState = {
 };
 
 function App() {
+  const [legalPage, setLegalPage] = React.useState<LegalPage | null>(null);
   const [step, setStep] = React.useState<Step>(1);
   const [trip, setTrip] = React.useState<TripState>(initialTrip);
   const [generated, setGenerated] = React.useState(false);
@@ -149,6 +175,12 @@ function App() {
   const [userId, setUserId] = React.useState<string | null>(null);
   const [saveState, setSaveState] = React.useState("");
   const [activeSavedTripId, setActiveSavedTripId] = React.useState<string | null>(null);
+  const [sharedToken, setSharedToken] = React.useState<string | null>(() => {
+    return new URLSearchParams(window.location.search).get("share");
+  });
+  const [sharedTripData, setSharedTripData] = React.useState<SharedTripPayload | null>(null);
+  const [sharedLoading, setSharedLoading] = React.useState(false);
+  const [sharedError, setSharedError] = React.useState("");
 
   // Restore an unfinished trip after an OAuth redirect.
   React.useEffect(()=>{
@@ -190,6 +222,51 @@ function App() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
+  React.useEffect(() => {
+    if (!sharedToken) {
+      setSharedTripData(null);
+      setSharedError("");
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadSharedTrip = async () => {
+      setSharedLoading(true);
+      setSharedError("");
+
+      const { data, error } = await supabase.rpc("get_shared_trip", {
+        p_token: sharedToken,
+      });
+
+      if (cancelled) return;
+
+      if (error) {
+        setSharedTripData(null);
+        setSharedError("This shared trip is unavailable or has been unshared.");
+        setSharedLoading(false);
+        return;
+      }
+
+      const row = Array.isArray(data) ? data[0] : null;
+
+      if (!row) {
+        setSharedTripData(null);
+        setSharedError("This shared trip is unavailable or has been unshared.");
+        setSharedLoading(false);
+        return;
+      }
+
+      setSharedTripData(row as SharedTripPayload);
+      setSharedLoading(false);
+    };
+
+    loadSharedTrip();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sharedToken]);
   // Resume the user's original Generate action after successful login.
   // The handled ref ensures auth callbacks cannot trigger generation twice.
   React.useEffect(()=>{
@@ -316,6 +393,7 @@ function App() {
     };
   };
   const generate = async () => {
+    if (generating) return;
     // Generation can consume paid route/AI services.
     // Require an authenticated user before creating any plan or server call.
     if (!userId) {
@@ -388,10 +466,10 @@ function App() {
     }
   };
 
-  const saveTrip = async () => {
+  const saveTrip = async (): Promise<string | null> => {
     if (!userId) {
       setAuthOpen(true);
-      return;
+      return null;
     }
 
     setSaveState("Saving...");
@@ -418,6 +496,8 @@ function App() {
     };
 
     let saveError = null;
+    let savedId = activeSavedTripId;
+    const wasUpdate = Boolean(activeSavedTripId);
 
     if (activeSavedTripId) {
       const { error } = await supabase
@@ -436,49 +516,184 @@ function App() {
       saveError = error;
 
       if (!error && data?.id) {
+        savedId = data.id;
         setActiveSavedTripId(data.id);
       }
     }
 
     if (saveError) {
       setSaveState(saveError.message);
-      return;
+      return null;
     }
 
-    setSaveState(activeSavedTripId ? "Updated" : "Saved");
+    setSaveState(wasUpdate ? "Updated" : "Saved");
     setTimeout(() => setSaveState(""), 2000);
+    return savedId;
   };
 
+  const savedTripToState = (saved: SavedTrip | SharedTripPayload): TripState => ({
+    origin: saved.origin || "",
+    destinations: saved.trip_input?.destinations?.length
+      ? saved.trip_input.destinations
+      : (saved.destinations?.length ? saved.destinations : [""]),
+    visitMinutes: saved.trip_input?.visitMinutes?.length
+      ? saved.trip_input.visitMinutes
+      : (saved.destinations?.length ? saved.destinations.map(() => 120) : [120]),
+    startDate: saved.start_date || "",
+    endDate: saved.end_date || "",
+    startTime: saved.start_time || "",
+    mode: saved.travel_mode || "mixed",
+    adults: saved.traveller_config?.adults ?? 1,
+    children0to5: saved.traveller_config?.children0to5 ?? 0,
+    children6to12:
+      saved.traveller_config?.children6to12 ??
+      saved.traveller_config?.children ??
+      0,
+    seniors: saved.traveller_config?.seniors ?? 0,
+    purpose: saved.trip_input?.purpose || "leisure",
+    style: saved.trip_input?.style || saved.comfort_mode || "comfortable",
+    facilities: saved.trip_input?.facilities || {
+      stay: false,
+      meals: false,
+      restStops: false,
+      visitBuffer: false,
+      cost: true,
+    },
+  });
+
   const openSavedTrip = (saved: SavedTrip) => {
-    setTrip({
-      origin: saved.origin || "",
-      destinations: saved.trip_input?.destinations?.length ? saved.trip_input.destinations : (saved.destinations?.length ? saved.destinations : [""]),
-      visitMinutes: saved.trip_input?.visitMinutes?.length ? saved.trip_input.visitMinutes : (saved.destinations?.length ? saved.destinations.map(() => 120) : [120]),
-      startDate: saved.start_date || "",
-      endDate: saved.end_date || "",
-      startTime: saved.start_time || "",
-      mode: saved.travel_mode || "mixed",
-      adults: saved.traveller_config?.adults ?? 1,
-      children0to5: saved.traveller_config?.children0to5 ?? 0,
-      children6to12: saved.traveller_config?.children6to12 ?? saved.traveller_config?.children ?? 0,
-      seniors: saved.traveller_config?.seniors ?? 0,
-      purpose: saved.trip_input?.purpose || "leisure",
-      style: saved.trip_input?.style || saved.comfort_mode || "comfortable",
-      facilities: saved.trip_input?.facilities || {
-        stay: false,
-        meals: false,
-        restStops: false,
-        visitBuffer: false,
-        cost: true
-      },
-    });
+    setTrip(savedTripToState(saved));
     setPlan(saved.itinerary || null);
+    setCostEstimate(saved.estimated_cost || null);
     setGenerated(Boolean(saved.itinerary));
     setStep(saved.itinerary ? 4 : 1);
     setActiveSavedTripId(saved.id);
     setTripsOpen(false);
   };
 
+  const ensureShareUrl = async (): Promise<string | null> => {
+    if (!userId) {
+      setAuthOpen(true);
+      return null;
+    }
+
+    const tripId = activeSavedTripId || await saveTrip();
+    if (!tripId) return null;
+
+    const { data, error } = await supabase
+      .from("trips")
+      .update({ is_shared: true })
+      .eq("id", tripId)
+      .select("share_token")
+      .single();
+
+    if (error || !data?.share_token) {
+      setSaveState(error?.message || "Could not create share link");
+      return null;
+    }
+
+    const configuredSiteUrl =
+      import.meta.env.VITE_PUBLIC_SITE_URL?.trim();
+
+    const url = new URL(
+      configuredSiteUrl || window.location.origin
+    );
+
+    url.pathname = "/";
+    url.search = "";
+    url.hash = "";
+    url.searchParams.set("share", data.share_token);
+
+    return url.toString();
+  };
+
+  const saveSharedAsOwn = async () => {
+    if (!sharedTripData || !sharedToken) return;
+
+    if (!userId) {
+      sessionStorage.setItem(PENDING_SHARED_COPY_KEY, sharedToken);
+      setAuthOpen(true);
+      return;
+    }
+
+    setSaveState("Saving copy...");
+
+    const sourceState = savedTripToState(sharedTripData);
+
+    const { data, error } = await supabase
+      .from("trips")
+      .insert({
+        user_id: userId,
+        title: sharedTripData.title || `${sourceState.origin} to ${sourceState.destinations.join(" to ")}`,
+        origin: sourceState.origin,
+        destinations: sourceState.destinations,
+        start_date: sourceState.startDate || null,
+        end_date: sourceState.endDate || null,
+        start_time: sourceState.startTime || null,
+        travel_mode: sourceState.mode,
+        traveller_config: {
+          adults: sourceState.adults,
+          children0to5: sourceState.children0to5,
+          children6to12: sourceState.children6to12,
+          seniors: sourceState.seniors,
+        },
+        comfort_mode: sourceState.style,
+        trip_input: sourceState,
+        itinerary: sharedTripData.itinerary,
+        estimated_cost: sharedTripData.estimated_cost,
+        copied_from: sharedTripData.id,
+        is_shared: false,
+      })
+      .select("id")
+      .single();
+
+    if (error || !data?.id) {
+      setSaveState(error?.message || "Could not save trip copy");
+      return;
+    }
+
+    sessionStorage.removeItem(PENDING_SHARED_COPY_KEY);
+
+    setTrip(sourceState);
+    setPlan(sharedTripData.itinerary || null);
+    setCostEstimate(sharedTripData.estimated_cost || null);
+    setGenerated(Boolean(sharedTripData.itinerary));
+    setStep(sharedTripData.itinerary ? 4 : 1);
+    setActiveSavedTripId(data.id);
+    setSharedToken(null);
+    setSharedTripData(null);
+    setSaveState("Saved as your trip");
+    setTimeout(() => setSaveState(""), 2000);
+
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete("share");
+    window.history.replaceState({}, "", cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
+  };
+
+  React.useEffect(() => {
+    if (!userId || !sharedTripData || !sharedToken) return;
+
+    if (sharedTripData.is_owner) {
+      const sourceState = savedTripToState(sharedTripData);
+      setTrip(sourceState);
+      setPlan(sharedTripData.itinerary || null);
+      setCostEstimate(sharedTripData.estimated_cost || null);
+      setGenerated(Boolean(sharedTripData.itinerary));
+      setStep(sharedTripData.itinerary ? 4 : 1);
+      setActiveSavedTripId(sharedTripData.id);
+      setSharedToken(null);
+      setSharedTripData(null);
+
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("share");
+      window.history.replaceState({}, "", cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
+      return;
+    }
+
+    if (sessionStorage.getItem(PENDING_SHARED_COPY_KEY) === sharedToken) {
+      saveSharedAsOwn();
+    }
+  }, [userId, sharedTripData, sharedToken]);
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -487,10 +702,19 @@ function App() {
     <div className="app">
       <header className="topbar">
         <div className="page-width header-inner">
-          <button className="brand brand-button" onClick={reset}>
+          <a
+            className="brand brand-button"
+            href="/"
+            onClick={(event)=>{
+              event.preventDefault();
+              reset();
+              window.history.replaceState(null,"","/");
+            }}
+            aria-label="MyTravelPlanner home"
+          >
             <span className="brand-icon"><MapPin size={20}/></span>
             <span>MyTravelPlanner</span>
-          </button>
+          </a>
 
           <div className="header-actions">
             {userEmail && (
@@ -514,7 +738,37 @@ function App() {
       </header>
 
       <main className="page-width main">
-        {!generated ? (
+        {sharedToken ? (
+          sharedLoading ? (
+            <div className="planner-card">
+              <LoaderCircle className="spin" size={22}/>
+              <span>Loading shared trip...</span>
+            </div>
+          ) : sharedError ? (
+            <div className="planner-card">
+              <CircleAlert size={22}/>
+              <strong>{sharedError}</strong>
+            </div>
+          ) : sharedTripData ? (
+            <Result
+              trip={savedTripToState(sharedTripData)}
+              plan={sharedTripData.itinerary}
+              routeData={[]}
+              rules={null}
+              costEstimate={sharedTripData.estimated_cost}
+              source="shared"
+              warning=""
+              generating={false}
+              saveState={saveState}
+              onSave={()=>{}}
+              onEdit={()=>{}}
+              onRegenerate={()=>{}}
+              readOnly
+              onSaveCopy={saveSharedAsOwn}
+              onGetShareUrl={async()=>window.location.href}
+            />
+          ) : null
+        ) : !generated ? (
           <>
             <section className="hero-strip">
               <div className="hero-icon"><MapPinned size={27}/></div>
@@ -567,10 +821,15 @@ function App() {
             onSave={saveTrip}
             onEdit={()=>{setGenerated(false);setStep(1)}}
             onRegenerate={generate}
+            readOnly={false}
+            onSaveCopy={()=>{}}
+            onGetShareUrl={ensureShareUrl}
           />
         )}
       </main>
 
+      <SiteFooter onOpen={setLegalPage}/>
+      <LegalPageModal page={legalPage} onClose={()=>setLegalPage(null)}/>
       <AuthModal open={authOpen} onClose={()=>setAuthOpen(false)}/>
       <MyTripsModal open={tripsOpen} onClose={()=>setTripsOpen(false)} onOpenTrip={openSavedTrip}/>
     </div>
@@ -881,7 +1140,10 @@ function Result({
   saveState,
   onSave,
   onEdit,
-  onRegenerate
+  onRegenerate,
+  readOnly,
+  onSaveCopy,
+  onGetShareUrl
 }:{
   trip:TripState;
   plan:any;
@@ -893,11 +1155,16 @@ function Result({
   warning:string;
   generating:boolean;
   saveState:string;
-  onSave:()=>void;
+  onSave:()=>void | Promise<unknown>;
   onEdit:()=>void;
   onRegenerate:()=>void;
+  readOnly:boolean;
+  onSaveCopy:()=>void | Promise<unknown>;
+  onGetShareUrl:()=>Promise<string | null>;
 }) {
   const [reportStep,setReportStep]=React.useState(0);
+  const [copyState,setCopyState]=React.useState<"idle"|"copying"|"copied">("idle");
+  const [whatsappState,setWhatsappState]=React.useState<"idle"|"opening">("idle");
 
   const planningMessages = [
     {
@@ -1231,20 +1498,58 @@ function Result({
   .filter(Boolean)
   .join("\n");
 
+  const buildShareText = async () => {
+    const shareUrl = await onGetShareUrl();
+
+    if (!shareUrl) {
+      return textPlan;
+    }
+
+    return [
+      `${trip.origin} to ${finalDestination}`,
+      `${purposeLabel} | ${styleLabel} | ${totalPeople} travellers`,
+      `Recommended: ${recommendedMode}`,
+      practicalTravelTime ? `Practical travel: ${practicalTravelTime}` : "",
+      "",
+      `View full trip plan: ${shareUrl}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+  };
+
   const copy=async()=>{
+    if(copyState!=="idle")return;
+
+    setCopyState("copying");
+
     try{
-      await navigator.clipboard.writeText(textPlan);
+      const shareText = await buildShareText();
+      await navigator.clipboard.writeText(shareText);
+      setCopyState("copied");
+      window.setTimeout(()=>setCopyState("idle"),1800);
     }catch(error){
       console.warn("Could not copy plan",error);
+      setCopyState("idle");
     }
   };
 
-  const whatsapp=()=>{
-    window.open(
-      `https://wa.me/?text=${encodeURIComponent(textPlan)}`,
-      "_blank",
-      "noopener,noreferrer"
-    );
+  const whatsapp=async()=>{
+    if(whatsappState!=="idle")return;
+
+    setWhatsappState("opening");
+
+    try{
+      const shareText = await buildShareText();
+      window.open(
+        `https://wa.me/?text=${encodeURIComponent(shareText)}`,
+        "_blank",
+        "noopener,noreferrer"
+      );
+    }catch(error){
+      console.warn("Could not open WhatsApp share",error);
+    }finally{
+      window.setTimeout(()=>setWhatsappState("idle"),900);
+    }
   };
 
   return (
@@ -1964,13 +2269,20 @@ function Result({
 
 
           <div className="mtp-places-panel">
-            <NearbySuggestions
-              initialLocation={
-                discoveryContext?.referenceLocation ||
-                finalDestination
-              }
-              purpose={trip.purpose}
-            />
+            {readOnly ? (
+              <div className="mtp-empty-state">
+                <MapPinned size={24}/>
+                <strong>Save this trip to your account to explore nearby places.</strong>
+              </div>
+            ) : (
+              <NearbySuggestions
+                initialLocation={
+                  discoveryContext?.referenceLocation ||
+                  finalDestination
+                }
+                purpose={trip.purpose}
+              />
+            )}
           </div>
 
 
@@ -2065,42 +2377,52 @@ function Result({
 
       <footer className="mtp-report-actions">
 
-        <button
-          className="mtp-action secondary"
-          onClick={onEdit}
-        >
-          <ArrowLeft size={17}/>
-          Edit
-        </button>
+        {!readOnly && (
+          <>
+            <button
+              className="mtp-action secondary"
+              onClick={onEdit}
+            >
+              <ArrowLeft size={17}/>
+              Edit
+            </button>
 
-        <button
-          className="mtp-action secondary"
-          onClick={onRegenerate}
-          disabled={generating}
-        >
-          {generating
-            ? <LoaderCircle
-                className="spin"
-                size={17}
-              />
-            : <RotateCcw size={17}/>}
-          Replan
-        </button>
+            <button
+              className="mtp-action secondary"
+              onClick={onRegenerate}
+              disabled={generating}
+            >
+              {generating
+                ? <LoaderCircle
+                    className="spin"
+                    size={17}
+                  />
+                : <RotateCcw size={17}/>}
+              Replan
+            </button>
+          </>
+        )}
 
         <button
           className="mtp-action secondary"
           onClick={copy}
+          disabled={copyState==="copying"}
         >
-          <Copy size={17}/>
-          Copy
+          {copyState==="copied" ? <Check size={17}/> : <Copy size={17}/>}
+          {copyState==="copying"
+            ? "Copying..."
+            : copyState==="copied"
+              ? "Copied"
+              : "Copy"}
         </button>
 
         <button
           className="mtp-action whatsapp"
           onClick={whatsapp}
+          disabled={whatsappState==="opening"}
         >
           <Share2 size={17}/>
-          WhatsApp
+          {whatsappState==="opening" ? "Opening..." : "WhatsApp"}
         </button>
 
         <button
@@ -2111,13 +2433,23 @@ function Result({
           PDF
         </button>
 
-        <button
-          className="mtp-action primary"
-          onClick={onSave}
-        >
-          <Save size={17}/>
-          {saveState || "Save trip"}
-        </button>
+        {readOnly ? (
+          <button
+            className="mtp-action primary"
+            onClick={onSaveCopy}
+          >
+            <Save size={17}/>
+            {saveState || "Save as my trip"}
+          </button>
+        ) : (
+          <button
+            className="mtp-action primary"
+            onClick={onSave}
+          >
+            <Save size={17}/>
+            {saveState || "Save trip"}
+          </button>
+        )}
 
       </footer>
 
@@ -2149,6 +2481,7 @@ function NearbySuggestions({
    * Identical searches are reused from session memory.
    */
   const loadNearby=async(nextKind:NearbyKind)=>{
+    if(loading)return;
     const cleanContext=context.trim();
     if(!cleanContext)return;
 
@@ -2410,21 +2743,130 @@ function MyTripsModal({open,onClose,onOpenTrip}:{open:boolean;onClose:()=>void;o
   const [trips,setTrips]=React.useState<SavedTrip[]>([]);
   const [loading,setLoading]=React.useState(false);
   const [message,setMessage]=React.useState("");
+  const [busyTripId,setBusyTripId]=React.useState<string|null>(null);
+  const [copiedTripId,setCopiedTripId]=React.useState<string|null>(null);
 
   const load=React.useCallback(async()=>{
-    setLoading(true);setMessage("");
-    const {data,error}=await supabase.from("trips").select("*").order("created_at",{ascending:false});
-    if(error){setMessage(error.message);setTrips([])}
-    else setTrips((data||[]) as SavedTrip[]);
+    setLoading(true);
+    setMessage("");
+
+    const {data,error}=await supabase
+      .from("trips")
+      .select("*")
+      .order("created_at",{ascending:false});
+
+    if(error){
+      setMessage(error.message);
+      setTrips([]);
+    }else{
+      setTrips((data||[]) as SavedTrip[]);
+    }
+
     setLoading(false);
   },[]);
 
-  React.useEffect(()=>{if(open)load()},[open,load]);
+  React.useEffect(()=>{
+    if(open) load();
+  },[open,load]);
 
   const remove=async(id:string)=>{
     const {error}=await supabase.from("trips").delete().eq("id",id);
-    if(error){setMessage(error.message);return}
-    setTrips(t=>t.filter(x=>x.id!==id));
+
+    if(error){
+      setMessage(error.message);
+      return;
+    }
+
+    setTrips(current=>current.filter(item=>item.id!==id));
+  };
+
+  const unshare=async(id:string)=>{
+    setBusyTripId(id);
+    setMessage("");
+
+    const {error}=await supabase
+      .from("trips")
+      .update({is_shared:false})
+      .eq("id",id);
+
+    if(error){
+      setMessage(error.message);
+      setBusyTripId(null);
+      return;
+    }
+
+    setTrips(current=>
+      current.map(item=>
+        item.id===id
+          ? {...item,is_shared:false}
+          : item
+      )
+    );
+
+    setBusyTripId(null);
+  };
+
+  const regenerateShareLink=async(id:string)=>{
+    setBusyTripId(id);
+    setMessage("");
+
+    try{
+      const nextToken=crypto.randomUUID();
+
+      const {data,error}=await supabase
+        .from("trips")
+        .update({
+          is_shared:true,
+          share_token:nextToken
+        })
+        .eq("id",id)
+        .select("share_token")
+        .single();
+
+      if(error) throw error;
+
+      const configuredSiteUrl=
+        import.meta.env.VITE_PUBLIC_SITE_URL?.trim();
+
+      const url=new URL(
+        configuredSiteUrl || window.location.origin
+      );
+
+      url.pathname="/";
+      url.search="";
+      url.hash="";
+      url.searchParams.set("share",String(data.share_token));
+
+      await navigator.clipboard.writeText(url.toString());
+
+      setTrips(current=>
+        current.map(item=>
+          item.id===id
+            ? {
+                ...item,
+                is_shared:true,
+                share_token:String(data.share_token)
+              }
+            : item
+        )
+      );
+
+      setCopiedTripId(id);
+
+      window.setTimeout(()=>{
+        setCopiedTripId(current=>
+          current===id ? null : current
+        );
+      },1800);
+    }catch(error){
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Could not regenerate the share link."
+      );
+    }finally{
+      setBusyTripId(null);
+    }
   };
 
   if(!open)return null;
@@ -2432,22 +2874,76 @@ function MyTripsModal({open,onClose,onOpenTrip}:{open:boolean;onClose:()=>void;o
   return (
     <div className="modal-backdrop" onMouseDown={onClose}>
       <div className="trips-card" onMouseDown={e=>e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}><X size={19}/></button>
+        <button
+          className="modal-close"
+          onClick={onClose}
+          aria-label="Close saved trips"
+        >
+          <X size={19}/>
+        </button>
+
         <span className="auth-kicker">MY TRIPS</span>
         <h2>Saved travel plans</h2>
 
         {loading && <p className="trips-empty">Loading...</p>}
         {message && <div className="auth-message">{message}</div>}
-        {!loading && trips.length===0 && <p className="trips-empty">No saved trips yet.</p>}
+        {!loading && trips.length===0 && (
+          <p className="trips-empty">No saved trips yet.</p>
+        )}
 
         <div className="trips-list">
           {trips.map(t=>(
             <div className="trip-row" key={t.id}>
-              <button className="trip-open" onClick={()=>onOpenTrip(t)}>
-                <span>{t.title || t.origin || "Saved trip"}</span>
-                <small>{t.start_date || "No date"} | {t.travel_mode || "Travel"}</small>
+              <button
+                className="trip-open"
+                onClick={()=>onOpenTrip(t)}
+              >
+                <span className="trip-title-line">
+                  {t.title || t.origin || "Saved trip"}
+                  {t.is_shared && (
+                    <em className="trip-shared-badge">Shared</em>
+                  )}
+                </span>
+
+                <small>
+                  {t.start_date || "No date"} | {t.travel_mode || "Travel"}
+                </small>
               </button>
-              <button className="trip-delete" onClick={()=>remove(t.id)}><Trash2 size={16}/></button>
+
+              <div className="trip-row-actions">
+                {t.is_shared && (
+                  <>
+                    <button
+                      type="button"
+                      className="trip-share-control"
+                      disabled={busyTripId===t.id}
+                      onClick={()=>unshare(t.id)}
+                      title="Disable this public share link"
+                    >
+                      Unshare
+                    </button>
+
+                    <button
+                      type="button"
+                      className="trip-share-control"
+                      disabled={busyTripId===t.id}
+                      onClick={()=>regenerateShareLink(t.id)}
+                      title="Replace the old public link and copy a new one"
+                    >
+                      {copiedTripId===t.id ? "Copied" : "New link"}
+                    </button>
+                  </>
+                )}
+
+                <button
+                  className="trip-delete"
+                  onClick={()=>remove(t.id)}
+                  aria-label="Delete trip"
+                  title="Delete trip"
+                >
+                  <Trash2 size={16}/>
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -2455,19 +2951,6 @@ function MyTripsModal({open,onClose,onOpenTrip}:{open:boolean;onClose:()=>void;o
     </div>
   )
 }
-
-/**
- * Lightweight reusable place autocomplete.
- *
- * Cost controls:
- * - waits for at least 2 characters
- * - debounces requests by 300 ms
- * - caches identical searches for the current browser session
- * - never calls OpenAI
- *
- * The provider is isolated here so Google Places can be replaced later
- * without changing RouteStep.
- */
 function PlaceAutocomplete({
   value,
   onChange,
